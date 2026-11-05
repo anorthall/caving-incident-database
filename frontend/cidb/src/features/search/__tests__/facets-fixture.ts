@@ -2,6 +2,10 @@ import type { IncidentFacets } from "@/lib/api";
 
 export const FACETS: IncidentFacets = {
   total: 120,
+  regions: [],
+  injuries: [{ value: "Broken leg", count: 4 }],
+  caves: [{ id: 7, name: "Alpha Cave", count: 5 }],
+  publications: [],
   countries: [
     { value: "United States", count: 110 },
     { value: "Mexico", count: 10 },

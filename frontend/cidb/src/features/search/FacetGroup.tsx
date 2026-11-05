@@ -1,6 +1,7 @@
 import { useId, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Toggle } from "@/components/ui/toggle";
 import type { FacetValue } from "@/lib/api";
 
@@ -16,17 +17,33 @@ interface FacetGroupProps {
 export function FacetGroup({ label, values, selected, onToggle }: FacetGroupProps) {
   const labelId = useId();
   const [expanded, setExpanded] = useState(false);
-  const visible = expanded
-    ? values
-    : values.filter(
-        (facet, index) => index < COLLAPSED_VISIBLE_COUNT || selected.includes(facet.value)
-      );
+  const [search, setSearch] = useState("");
+  const searchable = values.length > COLLAPSED_VISIBLE_COUNT;
+  const needle = search.trim().toLowerCase();
+  const matching = needle
+    ? values.filter((facet) => (facet.label ?? facet.value).toLowerCase().includes(needle))
+    : values;
+  const visible =
+    expanded || needle
+      ? matching
+      : matching.filter(
+          (facet, index) => index < COLLAPSED_VISIBLE_COUNT || selected.includes(facet.value)
+        );
 
   return (
     <div role="group" aria-labelledby={labelId} className="flex flex-col gap-1">
       <h3 id={labelId} className="mb-1 text-sm font-medium">
         {label}
       </h3>
+      {searchable && (
+        <Input
+          type="search"
+          aria-label={`Search ${label}`}
+          placeholder={`Search ${label.toLowerCase()}`}
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+        />
+      )}
       {visible.map((facet) => (
         <Toggle
           key={facet.value}
@@ -35,15 +52,15 @@ export function FacetGroup({ label, values, selected, onToggle }: FacetGroupProp
           pressed={selected.includes(facet.value)}
           onPressedChange={() => onToggle(facet.value)}
         >
-          <span className="truncate" title={facet.value}>
-            {facet.value}
+          <span className="truncate" title={facet.label ?? facet.value}>
+            {facet.label ?? facet.value}
           </span>
           <span className="text-sm text-muted-foreground tabular-nums">
             {facet.count.toLocaleString()}
           </span>
         </Toggle>
       ))}
-      {visible.length < values.length && (
+      {!needle && visible.length < values.length && (
         <Button
           variant="ghost"
           size="sm"

@@ -5,6 +5,7 @@ import type { IncidentFilters, SortField, SortOrder } from "@/lib/api";
 
 import {
   activeFilterCount,
+  EMPTY_FILTERS,
   type FilterDimension,
   parseFilters,
   parseSort,
@@ -30,13 +31,12 @@ export function useIncidentFilters() {
       applyFilters(toggleValue(filters, dimension, value)),
     setYears: (yearFrom?: number, yearTo?: number) =>
       applyFilters({ ...filters, year_from: yearFrom, year_to: yearTo }),
+    setHasLocation: (hasLocation?: boolean) =>
+      applyFilters({ ...filters, has_location: hasLocation }),
     removeQuery: () => applyFilters({ ...filters, q: undefined }),
     clear: (keepQuery = false) =>
       setSearchParams(
-        serializeFilters(
-          { q: keepQuery ? filters.q : undefined, tags: [], states: [], countries: [] },
-          sort
-        )
+        serializeFilters({ ...EMPTY_FILTERS, q: keepQuery ? filters.q : undefined }, sort)
       ),
     setSort: (sortBy: SortField, sortOrder: SortOrder) =>
       setSearchParams(serializeFilters(filters, { sortBy, sortOrder }), { replace: true }),

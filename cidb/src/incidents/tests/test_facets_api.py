@@ -3,7 +3,7 @@ from django.db import connection
 from django.test import Client
 from django.test.utils import CaptureQueriesContext
 
-from cidb.src.incidents.models import Cave, Incident, Location
+from cidb.src.incidents.models import Cave, Incident, IncidentPerson, Injury, Location, Person
 from cidb.src.incidents.tests.conftest import MakeIncident
 
 FACETS = "/api/v1/incidents/facets"
@@ -106,6 +106,10 @@ class TestFacets:
             "countries": [],
             "states": [],
             "tags": [],
+            "regions": [],
+            "injuries": [],
+            "caves": [],
+            "publications": [],
             "decades": [],
             "year_min": None,
             "year_max": None,
@@ -161,7 +165,54 @@ class TestFacets:
         with CaptureQueriesContext(connection) as ctx:
             api_client.get(FACETS, {"states": "Kentucky", "q": "cave"})
         incident_queries = [q for q in ctx.captured_queries if "incidents_" in q["sql"]]
-        assert len(incident_queries) == 5
+        assert len(incident_queries) == 9
 
     def test_invalid_params_rejected(self, api_client: Client, db: None) -> None:
         assert api_client.get(FACETS, {"year_from": 0}).status_code == 422
+
+
+@pytest.mark.django_db
+class TestPeopleAndEntityFilters:
+    def test_cave_and_publication_filters(
+        self, api_client: Client, corpus: dict[str, Incident]
+    ) -> None:
+        cave_id = corpus["flood"].cave_id
+        data = api_client.get(SEARCH, {"caves": [cave_id]}).json()
+        assert data["total"] == 3
+        pub_id = corpus["flood"].origin_id
+        assert api_client.get(SEARCH, {"publications": [pub_id]}).json()["total"] == 8
+        facets = api_client.get(FACETS, {"caves": [cave_id]}).json()
+        assert {c["name"] for c in facets["caves"]} >= {"Alpha Cave", "Bravo Cave"}
+        assert facets["publications"][0]["id"] == pub_id
+
+    def test_region_filter_and_facet(self, api_client: Client, corpus: dict[str, Incident]) -> None:
+        location = corpus["flood"].cave.location
+        assert location is not None
+        location.region_text = "Cumberland"
+        location.save()
+        data = api_client.get(SEARCH, {"regions": "Cumberland"}).json()
+        assert data["total"] == 3
+        assert as_dict(api_client.get(FACETS).json()["regions"]) == {"Cumberland": 3}
+
+    def test_injury_filter_facet_and_detail(
+        self, api_client: Client, corpus: dict[str, Incident]
+    ) -> None:
+        incident = corpus["rope"]
+        person = Person.objects.create()
+        involvement = IncidentPerson.objects.create(
+            incident=incident, person=person, age_at_incident=31
+        )
+        involvement.injuries.add(Injury.objects.create(description="Broken leg"))
+        assert api_client.get(SEARCH, {"injuries": "Broken leg"}).json()["total"] == 1
+        assert as_dict(api_client.get(FACETS).json()["injuries"]) == {"Broken leg": 1}
+        detail = api_client.get(f"/api/v1/incidents/{incident.pk}").json()
+        assert detail["people"] == [{"age_at_incident": 31, "injuries": ["Broken leg"]}]
+
+    def test_has_location(self, api_client: Client, corpus: dict[str, Incident]) -> None:
+        location = corpus["flood"].cave.location
+        assert location is not None
+        location.latitude = 36.1
+        location.longitude = -85.2
+        location.save()
+        assert api_client.get(SEARCH, {"has_location": "true"}).json()["total"] == 3
+        assert api_client.get(SEARCH, {"has_location": "false"}).json()["total"] == 5

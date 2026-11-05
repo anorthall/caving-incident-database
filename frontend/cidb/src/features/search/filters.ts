@@ -5,14 +5,33 @@ const MAX_FILTER_VALUES = 20;
 const MIN_YEAR = 1;
 const MAX_YEAR = 9999;
 
-export type FilterDimension = "tags" | "states" | "countries";
+export type FilterDimension =
+  "tags" | "states" | "countries" | "regions" | "injuries" | "caves" | "publications";
+
+export const FILTER_DIMENSIONS: readonly FilterDimension[] = [
+  "tags",
+  "states",
+  "countries",
+  "regions",
+  "injuries",
+  "caves",
+  "publications",
+];
 
 interface SortState {
   sortBy: SortField;
   sortOrder: SortOrder;
 }
 
-export const EMPTY_FILTERS: IncidentFilters = { tags: [], states: [], countries: [] };
+export const EMPTY_FILTERS: IncidentFilters = {
+  tags: [],
+  states: [],
+  countries: [],
+  regions: [],
+  injuries: [],
+  caves: [],
+  publications: [],
+};
 
 const SORT_FIELDS: readonly SortField[] = ["date", "relevance", "popularity", "title", "cave_name"];
 const SORT_ORDERS: readonly SortOrder[] = ["asc", "desc"];
@@ -33,12 +52,23 @@ function parseList(params: URLSearchParams, name: string): string[] {
   return [...new Set(values)].slice(0, MAX_FILTER_VALUES);
 }
 
+function parseBoolean(value: string | null): boolean | undefined {
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return undefined;
+}
+
 export function parseFilters(params: URLSearchParams): IncidentFilters {
   return {
     q: params.get("q")?.trim() || undefined,
     tags: parseList(params, "tags"),
     states: parseList(params, "states"),
     countries: parseList(params, "countries"),
+    regions: parseList(params, "regions"),
+    injuries: parseList(params, "injuries"),
+    caves: parseList(params, "caves").filter((id) => /^\d+$/.test(id)),
+    publications: parseList(params, "publications").filter((id) => /^\d+$/.test(id)),
+    has_location: parseBoolean(params.get("has_location")),
     year_from: parseYear(params.get("year_from") ?? ""),
     year_to: parseYear(params.get("year_to") ?? ""),
   };
@@ -83,9 +113,8 @@ export function hasYearFilter(filters: IncidentFilters): boolean {
 
 export function activeFilterCount(filters: IncidentFilters): number {
   return (
-    filters.tags.length +
-    filters.states.length +
-    filters.countries.length +
+    FILTER_DIMENSIONS.reduce((total, dimension) => total + filters[dimension].length, 0) +
+    (filters.has_location === undefined ? 0 : 1) +
     (hasYearFilter(filters) ? 1 : 0)
   );
 }

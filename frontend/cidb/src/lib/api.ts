@@ -122,6 +122,11 @@ export interface IncidentListItem {
   relevance_score: number | null;
 }
 
+export interface PersonInvolved {
+  age_at_incident: number | null;
+  injuries: string[];
+}
+
 export interface IncidentDetail {
   id: number;
   title: string;
@@ -134,6 +139,7 @@ export interface IncidentDetail {
   tags: Tag[];
   origin_publication: Publication | null;
   references: IncidentReference[];
+  people: PersonInvolved[];
   created_at: string;
   updated_at: string;
 }
@@ -154,12 +160,24 @@ export interface IncidentFilters {
   tags: string[];
   countries: string[];
   states: string[];
+  regions: string[];
+  injuries: string[];
+  caves: string[];
+  publications: string[];
+  has_location?: boolean;
   year_from?: number;
   year_to?: number;
 }
 
 export interface FacetValue {
   value: string;
+  label?: string;
+  count: number;
+}
+
+export interface EntityFacet {
+  id: number;
+  name: string;
   count: number;
 }
 
@@ -173,6 +191,10 @@ export interface IncidentFacets {
   countries: FacetValue[];
   states: FacetValue[];
   tags: FacetValue[];
+  regions: FacetValue[];
+  injuries: FacetValue[];
+  caves: EntityFacet[];
+  publications: EntityFacet[];
   decades: DecadeFacet[];
   year_min: number | null;
   year_max: number | null;

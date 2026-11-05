@@ -7,12 +7,15 @@ from django.contrib.postgres.search import SearchRank
 from django.db.models import Count, Exists, F, Model, OuterRef, Q, QuerySet
 from django.db.models.functions import Ln
 
-from cidb.src.incidents.models import Incident
+from cidb.src.incidents.models import Incident, IncidentPerson
 from cidb.src.incidents.queries.filters import IncidentFilters
 
 MAX_COUNTRY_FACETS = 20
 MAX_STATE_FACETS = 60
 MAX_TAG_FACETS = 40
+MAX_REGION_FACETS = 60
+MAX_INJURY_FACETS = 40
+MAX_ENTITY_FACETS = 40
 
 
 class SortBy(StrEnum):
@@ -27,6 +30,10 @@ class Dimension(StrEnum):
     COUNTRIES = "countries"
     STATES = "states"
     TAGS = "tags"
+    CAVES = "caves"
+    REGIONS = "regions"
+    INJURIES = "injuries"
+    PUBLICATIONS = "publications"
     YEARS = "years"
 
 
@@ -44,6 +51,13 @@ class FacetValue:
 
 
 @dataclass(frozen=True)
+class EntityFacet:
+    id: int
+    name: str
+    count: int
+
+
+@dataclass(frozen=True)
 class DecadeFacet:
     decade: int
     count: int
@@ -55,6 +69,10 @@ class IncidentFacets:
     countries: list[FacetValue]
     states: list[FacetValue]
     tags: list[FacetValue]
+    regions: list[FacetValue]
+    injuries: list[FacetValue]
+    caves: list[EntityFacet]
+    publications: list[EntityFacet]
     decades: list[DecadeFacet]
     year_min: int | None
     year_max: int | None
@@ -149,6 +167,29 @@ class IncidentQuery:
             filters.tags,
         )
 
+        regions = cls._value_facets(
+            cls._apply(Incident.objects.all(), filters, frozenset({Dimension.REGIONS})),
+            "cave__location__region_text",
+            filters.regions,
+            MAX_REGION_FACETS,
+        )
+        injuries = cls._injury_facets(
+            cls._apply(Incident.objects.all(), filters, frozenset({Dimension.INJURIES})),
+            filters.injuries,
+        )
+        caves = cls._entity_facets(
+            cls._apply(Incident.objects.all(), filters, frozenset({Dimension.CAVES})),
+            "cave_id",
+            "cave__name",
+            filters.caves,
+        )
+        publications = cls._entity_facets(
+            cls._apply(Incident.objects.all(), filters, frozenset({Dimension.PUBLICATIONS})),
+            "origin_id",
+            "origin__title",
+            filters.publications,
+        )
+
         year_counts = (
             cls._apply(Incident.objects.all(), filters, frozenset({Dimension.YEARS}))
             .filter(date_year__isnull=False)
@@ -167,6 +208,10 @@ class IncidentQuery:
             countries=countries,
             states=states,
             tags=tags,
+            regions=regions,
+            injuries=injuries,
+            caves=caves,
+            publications=publications,
             decades=[DecadeFacet(decade=d, count=decade_counts[d]) for d in sorted(decade_counts)],
             year_min=min(years, default=None),
             year_max=max(years, default=None),
@@ -203,6 +248,25 @@ class IncidentQuery:
                     )
                 )
             )
+        if filters.regions and Dimension.REGIONS not in skip:
+            queryset = queryset.filter(cave__location__region_text__in=filters.regions)
+        if filters.caves and Dimension.CAVES not in skip:
+            queryset = queryset.filter(cave_id__in=filters.caves)
+        if filters.publications and Dimension.PUBLICATIONS not in skip:
+            queryset = queryset.filter(origin_id__in=filters.publications)
+        if filters.injuries and Dimension.INJURIES not in skip:
+            queryset = queryset.filter(
+                Exists(
+                    IncidentPerson.objects.filter(
+                        incident=OuterRef("pk"), injuries__description__in=filters.injuries
+                    )
+                )
+            )
+        if filters.has_location is not None:
+            located = Q(
+                cave__location__latitude__isnull=False, cave__location__longitude__isnull=False
+            )
+            queryset = queryset.filter(located if filters.has_location else ~located)
         if Dimension.YEARS not in skip:
             if filters.year_from is not None:
                 queryset = queryset.filter(date_year__gte=filters.year_from)
@@ -251,6 +315,51 @@ class IncidentQuery:
             .annotate(count=Count("pk"))
         )
         return cls._capped_with_selected(grouped, "tag__name", selected, MAX_TAG_FACETS)
+
+    @classmethod
+    def _injury_facets(cls, queryset: QuerySet[Incident], selected: list[str]) -> list[FacetValue]:
+        grouped = (
+            IncidentPerson.objects.filter(incident__in=queryset.order_by().values("pk"))
+            .order_by()
+            .values_list("injuries__description")
+            .annotate(count=Count("incident", distinct=True))
+            .filter(injuries__isnull=False)
+        )
+        return cls._capped_with_selected(
+            grouped, "injuries__description", selected, MAX_INJURY_FACETS
+        )
+
+    @classmethod
+    def _entity_facets(
+        cls,
+        queryset: QuerySet[Incident],
+        id_field: str,
+        name_field: str,
+        selected: list[int],
+    ) -> list[EntityFacet]:
+        grouped = queryset.order_by().values_list(id_field, name_field).annotate(count=Count("pk"))
+        facets = [
+            EntityFacet(id=i, name=n, count=c)
+            for i, n, c in grouped.order_by("-count", name_field)[:MAX_ENTITY_FACETS]
+        ]
+        present = {f.id for f in facets}
+        missing = [v for v in dict.fromkeys(selected) if v not in present]
+        if missing:
+            found = {i: (n, c) for i, n, c in grouped.filter(**{f"{id_field}__in": missing})}
+            names = dict(
+                Incident.objects.filter(**{f"{id_field}__in": missing}).values_list(
+                    id_field, name_field
+                )
+            )
+            facets.extend(
+                EntityFacet(
+                    id=v,
+                    name=found[v][0] if v in found else names.get(v, ""),
+                    count=found[v][1] if v in found else 0,
+                )
+                for v in missing
+            )
+        return facets
 
     @classmethod
     def _capped_with_selected(

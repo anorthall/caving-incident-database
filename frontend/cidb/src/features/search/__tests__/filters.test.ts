@@ -30,6 +30,11 @@ describe("parseFilters", () => {
       tags: ["Flooding", "Rope & anchor"],
       states: ["Tennessee"],
       countries: [],
+      regions: [],
+      injuries: [],
+      caves: [],
+      publications: [],
+      has_location: undefined,
       year_from: 1990,
       year_to: 1999,
     });
@@ -63,6 +68,11 @@ describe("serializeFilters", () => {
       tags: ["Rope & anchor", "Bad air"],
       states: ["New Mexico"],
       countries: ["United States"],
+      regions: ["Upper Cumberland"],
+      injuries: ["Broken leg"],
+      caves: ["12"],
+      publications: ["3"],
+      has_location: true,
       year_from: 1990,
       year_to: 1999,
     };
@@ -144,6 +154,10 @@ describe("activeFilterCount", () => {
         tags: ["a", "b"],
         states: ["c"],
         countries: [],
+        regions: [],
+        injuries: [],
+        caves: [],
+        publications: [],
         year_from: 1990,
         year_to: 1999,
       })
@@ -170,5 +184,21 @@ describe("yearRangeLabel", () => {
     expect(yearRangeLabel(1990, undefined)).toBe("From 1990");
     expect(yearRangeLabel(undefined, 2000)).toBe("Until 2000");
     expect(yearRangeLabel(1995, 1995)).toBe("1995");
+  });
+});
+
+describe("people and entity filters", () => {
+  it("parses new dimensions and ignores non-numeric ids", () => {
+    const parsed = parseFilters(
+      params("injuries=Broken+leg&caves=4&caves=x&publications=2&has_location=false")
+    );
+    expect(parsed.injuries).toEqual(["Broken leg"]);
+    expect(parsed.caves).toEqual(["4"]);
+    expect(parsed.publications).toEqual(["2"]);
+    expect(parsed.has_location).toBe(false);
+  });
+
+  it("counts has_location as one active filter", () => {
+    expect(activeFilterCount({ ...EMPTY_FILTERS, has_location: true, caves: ["1"] })).toBe(2);
   });
 });
