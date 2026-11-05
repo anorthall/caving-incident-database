@@ -8,7 +8,10 @@ import { toast } from "sonner";
 
 import { IncidentCard } from "@/components/incidents/IncidentCard";
 import { IncidentTable } from "@/components/incidents/IncidentTable";
+import { DidYouMean } from "@/components/search/DidYouMean";
 import { NoResultsMessage } from "@/components/search/NoResultsMessage";
+import { RecentlyViewed } from "@/components/search/RecentlyViewed";
+import { SearchTypeahead } from "@/components/search/SearchTypeahead";
 import { SortControls, type ViewMode } from "@/components/search/SortControls";
 import { Button } from "@/components/ui/button";
 import { DownloadMenu } from "@/features/search/DownloadMenu";
@@ -34,6 +37,7 @@ import {
   TYPING_SPEED_MS,
   VIEW_MODE_STORAGE_KEY,
 } from "@/constants.ts";
+import { usePageMeta } from "@/hooks/use-page-meta";
 import { useStaffCommands } from "@/hooks/use-staff-commands";
 
 export function SearchPage() {
@@ -90,6 +94,12 @@ export function SearchPage() {
   const navigate = useNavigate();
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const hasSearched = urlQuery.length > 0 || hasFilters;
+  usePageMeta(
+    urlQuery ? `Search: ${urlQuery}` : hasFilters ? "Filtered incidents" : null,
+    urlQuery
+      ? `Caving incidents matching "${urlQuery}".`
+      : "Search and explore documented caving incidents and accidents."
+  );
 
   // Track search start time and scroll to top on new search
   useEffect(() => {
@@ -200,15 +210,16 @@ export function SearchPage() {
   }, []);
 
   const handleSearch = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (query.trim()) {
-        const handled = await handleStaffCommand(query);
+    async (e: React.FormEvent | string) => {
+      if (typeof e !== "string") e.preventDefault();
+      const text = typeof e === "string" ? e : query;
+      if (text.trim()) {
+        const handled = await handleStaffCommand(text);
         if (handled) {
           setQuery("");
           return;
         }
-        navigate(filterHref({ q: query.trim() }));
+        navigate(filterHref({ q: text.trim() }));
       }
     },
     [query, navigate, handleStaffCommand]
@@ -321,21 +332,20 @@ export function SearchPage() {
 
         <form onSubmit={handleSearch} className="w-full max-w-2xl px-4 py-12">
           <div
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
             className={`relative rounded-lg p-0.5 transition-colors ${isFocused ? "bg-linear-to-r from-red-500 via-yellow-500 to-purple-500 bg-size-[200%_100%] animate-gradient-x" : "bg-border"}`}
           >
-            <input
-              type="text"
-              placeholder={animatedPlaceholder}
+            <SearchTypeahead
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              autoFocus
-              className={`w-full h-16 text-2xl px-8 rounded-md bg-background outline-none placeholder:text-muted-foreground/50 ${!query ? "caret-transparent" : ""}`}
+              onValueChange={setQuery}
+              onSubmit={(v) => void handleSearch(v)}
+              placeholder={animatedPlaceholder}
             />
           </div>
         </form>
 
+        <RecentlyViewed />
         <BrowseEntryPoints />
       </div>
     );
@@ -387,7 +397,10 @@ export function SearchPage() {
             )}
 
             {data && allItems.length === 0 && (
-              <NoResultsMessage onClearFilters={hasFilters ? () => clear(true) : undefined} />
+              <>
+                <NoResultsMessage onClearFilters={hasFilters ? () => clear(true) : undefined} />
+                {urlQuery && <DidYouMean query={urlQuery} />}
+              </>
             )}
 
             {data && allItems.length > 0 && (

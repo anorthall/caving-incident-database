@@ -1,3 +1,4 @@
+import { usePageMeta } from "@/hooks/use-page-meta";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -9,6 +10,7 @@ import { useAuth } from "@/lib/auth-context";
 import { fetchCsrfToken } from "@/lib/csrf";
 
 export function StaffLoginPage() {
+  usePageMeta("Staff login", "Staff area of the Caving Incident Database.");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
