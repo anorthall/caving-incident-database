@@ -33,3 +33,9 @@ class IncidentGeoSchema(Schema):
     points: list[MapPointSchema]
     total: int
     without_location: int
+
+
+class BrowseValueSchema(Schema):
+    value: str
+    count: int
+    id: int | None = None
