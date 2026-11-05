@@ -1,6 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import {
+  columnSizingFeature,
+  columnVisibilityFeature,
+  flexRender,
+  tableFeatures,
+  useTable,
+} from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
@@ -34,6 +40,8 @@ import {
   type SortOrder,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+
+const features = tableFeatures({ columnSizingFeature, columnVisibilityFeature });
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
   pending: "default",
@@ -97,7 +105,7 @@ export function FeedbackListPage() {
     [sortBy, sortOrder]
   );
 
-  const columns: ColumnDef<FeedbackListItem>[] = useMemo(
+  const columns: ColumnDef<typeof features, FeedbackListItem>[] = useMemo(
     () => [
       {
         accessorKey: "id",
@@ -210,10 +218,10 @@ export function FeedbackListPage() {
     [handleSortChange, SortIcon]
   );
 
-  const table = useReactTable({
+  const table = useTable({
+    features,
     data: data?.items ?? [],
     columns,
-    getCoreRowModel: getCoreRowModel(),
   });
 
   if (authLoading) {

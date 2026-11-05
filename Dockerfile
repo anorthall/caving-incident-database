@@ -1,5 +1,5 @@
 FROM python:3.14-slim
-COPY --from=ghcr.io/astral-sh/uv:0.9.18 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.13.7 /uv /uvx /bin/
 
 ENV UV_COMPILE_BYTECODE=1
 ENV UV_FROZEN=1
@@ -22,8 +22,12 @@ RUN apt-get update && apt-get install -y \
     tini && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY --chown=app:app . .
 USER app
+
+COPY --chown=app:app pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-install-project
+
+COPY --chown=app:app . .
 
 # SECRET_KEY is scoped to collectstatic rather than baked in as an ENV, so an
 # image that reaches production without a real key fails loudly instead of

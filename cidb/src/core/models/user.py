@@ -50,6 +50,8 @@ class ACAUser(AbstractUser):
     EMAIL_FIELD = "email"
     REQUIRED_FIELDS = ["name"]
 
+    username = models.CharField("username", max_length=150, blank=True)
+
     email = models.EmailField(
         "email address",
         max_length=255,

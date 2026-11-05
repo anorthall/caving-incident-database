@@ -1,4 +1,4 @@
-import type { VisibilityState } from "@tanstack/react-table";
+import type { ColumnVisibilityState } from "@tanstack/react-table";
 import { ArrowDownAZ, ArrowUpAZ, List, Settings2, Table2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,8 +33,8 @@ interface SortControlsProps {
   onSortByChange: (field: SortField) => void;
   onSortOrderChange: (order: SortOrder) => void;
   onViewModeChange: (mode: ViewMode) => void;
-  columnVisibility?: VisibilityState;
-  onColumnVisibilityChange?: (visibility: VisibilityState) => void;
+  columnVisibility?: ColumnVisibilityState;
+  onColumnVisibilityChange?: (visibility: ColumnVisibilityState) => void;
   resultCount?: number;
   searchTime?: number | null;
 }

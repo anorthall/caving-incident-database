@@ -14,6 +14,5 @@ def configure_logfire() -> None:
     logfire.instrument_pydantic_ai()
     logfire.instrument_django()
     logfire.instrument_psycopg()
-    logfire.instrument_redis()
     logfire.instrument_pydantic()
     logfire.instrument_system_metrics()

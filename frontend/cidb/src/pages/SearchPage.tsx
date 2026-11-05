@@ -1,5 +1,5 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
-import type { VisibilityState } from "@tanstack/react-table";
+import type { ColumnVisibilityState } from "@tanstack/react-table";
 import { ChevronUp, Table2 } from "lucide-react";
 import * as React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -40,9 +40,18 @@ export function SearchPage() {
   const urlQuery = filters.q ?? "";
   const filtersKey = serializeFilters(filters).toString();
   const [query, setQuery] = useState(urlQuery);
+  const [prevUrlQuery, setPrevUrlQuery] = useState(urlQuery);
   const { handleStaffCommand } = useStaffCommands();
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [searchTime, setSearchTime] = useState<number | null>(null);
+
+  if (urlQuery !== prevUrlQuery) {
+    setPrevUrlQuery(urlQuery);
+    setQuery(urlQuery);
+    if (urlQuery) {
+      setSearchTime(null);
+    }
+  }
 
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     if (typeof window !== "undefined") {
@@ -54,7 +63,7 @@ export function SearchPage() {
     return "cards";
   });
 
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>({
     tags: false,
     view_count: false,
   });
@@ -85,7 +94,6 @@ export function SearchPage() {
   useEffect(() => {
     if (filtersKey) {
       searchStartRef.current = performance.now();
-      setSearchTime(null);
       window.scrollTo(0, 0);
     }
   }, [filtersKey]);
@@ -106,10 +114,6 @@ export function SearchPage() {
   });
 
   const { data: facets } = useFacets(filters);
-
-  useEffect(() => {
-    setQuery(urlQuery);
-  }, [urlQuery]);
 
   useEffect(() => {
     if (data?.pages[0] && searchStartRef.current > 0 && searchTime === null) {
@@ -223,7 +227,7 @@ export function SearchPage() {
   const searchTotal = data?.pages[0]?.total ?? 0;
   const totalCount = facets?.total ?? 0;
 
-  const exampleQueriesRef = useRef(
+  const [exampleQueries] = useState(() =>
     [
       "rope failure",
       "flooding incidents",
@@ -265,7 +269,6 @@ export function SearchPage() {
       return;
     }
 
-    const exampleQueries = exampleQueriesRef.current;
     const currentQuery = exampleQueries[placeholderIndex];
     let charIndex = 0;
 
@@ -296,7 +299,7 @@ export function SearchPage() {
     }
 
     return clearAnimationTimeout;
-  }, [placeholderIndex, isTyping, query]);
+  }, [exampleQueries, placeholderIndex, isTyping, query]);
 
   if (!hasSearched) {
     return (

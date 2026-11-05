@@ -1,6 +1,6 @@
 import pytest
 from django.test import Client
-from pytest_django.fixtures import SettingsWrapper
+from pytest_django import Settings
 
 
 @pytest.mark.parametrize(
@@ -8,7 +8,7 @@ from pytest_django.fixtures import SettingsWrapper
     ["/nonexistent-xyz", "/core/nope", "/api/v1/nope", "/api/v1/auth/nope"],
 )
 @pytest.mark.django_db
-def test_unknown_path_returns_404(settings: SettingsWrapper, path: str) -> None:
+def test_unknown_path_returns_404(settings: Settings, path: str) -> None:
     settings.DEBUG = False
     settings.ALLOWED_HOSTS = ["testserver"]
 
@@ -18,7 +18,7 @@ def test_unknown_path_returns_404(settings: SettingsWrapper, path: str) -> None:
 
 
 @pytest.mark.django_db
-def test_non_integer_incident_id_returns_422(settings: SettingsWrapper) -> None:
+def test_non_integer_incident_id_returns_422(settings: Settings) -> None:
     settings.DEBUG = False
     settings.ALLOWED_HOSTS = ["testserver"]
 
