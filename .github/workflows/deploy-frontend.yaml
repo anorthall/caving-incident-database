@@ -16,13 +16,8 @@ permissions:
   contents: read
 
 jobs:
-  frontend-tests:
-    name: Frontend Tests
-    uses: ./.github/workflows/frontend-tests.yaml
-
   deploy:
-    name: Build and Deploy SPA
-    needs: [frontend-tests]
+    name: Test, Build and Deploy SPA
     if: vars.FRONTEND_BUCKET != ''
     runs-on: ubuntu-latest
     environment: production
@@ -51,6 +46,12 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Test
+        run: pnpm run test
 
       - name: Build
         env:
