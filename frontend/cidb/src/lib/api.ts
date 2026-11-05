@@ -527,6 +527,34 @@ export async function resolveFeedback(
   return response.json();
 }
 
+export interface DataQualitySample {
+  kind: string;
+  id: number;
+  label: string;
+}
+
+export interface DataQualityCheck {
+  key: string;
+  title: string;
+  description: string;
+  count: number;
+  samples: DataQualitySample[];
+}
+
+export async function getDataQuality(): Promise<DataQualityCheck[]> {
+  const response = await fetchWithRetry(`${API_BASE_URL}/staff/data-quality`);
+
+  if (response.status === 401) {
+    throw new Error("Unauthorized: Please log in as staff");
+  }
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch data quality: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
 export type BrowseDimension = "state" | "country" | "tag" | "cave" | "decade";
 
 export interface BrowseValue {

@@ -15,6 +15,7 @@ import { FeedbackListPage } from "@/pages/FeedbackListPage";
 import { IncidentPage } from "@/pages/IncidentPage";
 import { PrivacyPage } from "@/pages/PrivacyPage";
 import { SearchPage } from "@/pages/SearchPage";
+import { DataQualityPage } from "@/pages/DataQualityPage";
 import { StaffLoginPage } from "@/pages/StaffLoginPage";
 
 const StatsPage = React.lazy(() => import("@/pages/StatsPage"));
@@ -65,6 +66,7 @@ function App() {
           <Route path="/data" element={<DataPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/staff/login" element={<StaffLoginPage />} />
+          <Route path="/staff/data-quality" element={<DataQualityPage />} />
           <Route path="/staff/feedback" element={<FeedbackListPage />} />
           <Route path="/staff/feedback/:id" element={<FeedbackDetailPage />} />
         </Route>
