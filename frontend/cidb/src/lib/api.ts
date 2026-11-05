@@ -234,6 +234,15 @@ export async function searchIncidents(
   return response.json();
 }
 
+export type ExportFormat = "csv" | "json";
+
+export function exportUrl(filters: IncidentFilters, format: ExportFormat): string {
+  const searchParams = new URLSearchParams();
+  appendFilterParams(searchParams, filters);
+  searchParams.set("format", format);
+  return `${API_BASE_URL}/incidents/export?${searchParams.toString()}`;
+}
+
 export async function getFacets(filters: IncidentFilters): Promise<IncidentFacets> {
   const searchParams = new URLSearchParams();
   appendFilterParams(searchParams, filters);
