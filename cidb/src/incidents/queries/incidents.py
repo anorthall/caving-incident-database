@@ -7,12 +7,21 @@ from django.contrib.postgres.search import SearchRank
 from django.db.models import Count, Exists, F, Model, OuterRef, Q, QuerySet
 from django.db.models.functions import Ln
 
-from cidb.src.incidents.models import Incident
+from cidb.src.incidents.models import Incident, IncidentPerson
 from cidb.src.incidents.queries.filters import IncidentFilters
 
 MAX_COUNTRY_FACETS = 20
 MAX_STATE_FACETS = 60
 MAX_TAG_FACETS = 40
+MAX_STAT_ROWS = 15
+AGE_BUCKETS = (
+    (0, 17, "Under 18"),
+    (18, 29, "18-29"),
+    (30, 39, "30-39"),
+    (40, 49, "40-49"),
+    (50, 59, "50-59"),
+)
+AGE_BUCKET_OVER = "60+"
 
 
 class SortBy(StrEnum):
@@ -28,6 +37,22 @@ class Dimension(StrEnum):
     STATES = "states"
     TAGS = "tags"
     YEARS = "years"
+
+
+class GroupBy(StrEnum):
+    YEAR = "year"
+    DECADE = "decade"
+    TAG = "tag"
+    STATE = "state"
+    COUNTRY = "country"
+    INJURY = "injury"
+    AGE_BUCKET = "age_bucket"
+
+
+@dataclass(frozen=True)
+class StatRow:
+    label: str
+    count: int
 
 
 @dataclass(frozen=True)
@@ -171,6 +196,79 @@ class IncidentQuery:
             year_min=min(years, default=None),
             year_max=max(years, default=None),
         )
+
+    @classmethod
+    def aggregate(cls, filters: IncidentFilters, group_by: GroupBy) -> list[StatRow]:
+        queryset = cls.apply(Incident.objects.all(), filters).order_by()
+        incident_ids = queryset.values("pk")
+        match group_by:
+            case GroupBy.YEAR | GroupBy.DECADE:
+                counts: Counter[int] = Counter()
+                for year, count in (
+                    queryset.filter(date_year__isnull=False)
+                    .values_list("date_year")
+                    .annotate(count=Count("pk"))
+                ):
+                    counts[year if group_by == GroupBy.YEAR else year // 10 * 10] += count
+                return [StatRow(label=str(k), count=counts[k]) for k in sorted(counts)]
+            case GroupBy.TAG:
+                grouped = (
+                    Incident.tags.through.objects.filter(incident__in=incident_ids)
+                    .order_by()
+                    .values_list("tag__name")
+                    .annotate(count=Count("pk"))
+                )
+                return cls._top_rows(grouped, "tag__name")
+            case GroupBy.STATE:
+                return cls._top_rows(
+                    queryset.exclude(cave__location__state_text="")
+                    .values_list("cave__location__state_text")
+                    .annotate(count=Count("pk")),
+                    "cave__location__state_text",
+                )
+            case GroupBy.COUNTRY:
+                return cls._top_rows(
+                    queryset.exclude(cave__location__country_text="")
+                    .values_list("cave__location__country_text")
+                    .annotate(count=Count("pk")),
+                    "cave__location__country_text",
+                )
+            case GroupBy.INJURY:
+                return cls._top_rows(
+                    IncidentPerson.injuries.through.objects.filter(
+                        incidentperson__incident__in=incident_ids
+                    )
+                    .order_by()
+                    .values_list("injury__description")
+                    .annotate(count=Count("pk")),
+                    "injury__description",
+                )
+            case GroupBy.AGE_BUCKET:
+                return cls._age_rows(queryset)
+
+    @classmethod
+    def _age_rows(cls, queryset: QuerySet[Incident]) -> list[StatRow]:
+        ages = (
+            IncidentPerson.objects.filter(
+                incident__in=queryset.values("pk"), age_at_incident__isnull=False
+            )
+            .order_by()
+            .values_list("age_at_incident")
+            .annotate(count=Count("pk"))
+        )
+        totals: Counter[str] = Counter()
+        for age, count in ages:
+            label = next((name for low, high, name in AGE_BUCKETS if low <= age <= high), None)
+            totals[label or AGE_BUCKET_OVER] += count
+        order = [name for _, _, name in AGE_BUCKETS] + [AGE_BUCKET_OVER]
+        return [StatRow(label=name, count=totals[name]) for name in order if totals[name]]
+
+    @staticmethod
+    def _top_rows(grouped: QuerySet[Model, tuple[str, int]], field: str) -> list[StatRow]:
+        return [
+            StatRow(label=label, count=count)
+            for label, count in grouped.order_by("-count", field)[:MAX_STAT_ROWS]
+        ]
 
     @classmethod
     def _apply(
