@@ -45,6 +45,14 @@ describe("StatsPage", () => {
     getStats.mockResolvedValue([]);
     renderPage("/stats");
     await waitFor(() =>
+      expect(screen.getAllByText("No data recorded yet.")).toHaveLength(STATS_CHARTS.length)
+    );
+  });
+
+  it("mentions the filters when filtered data is empty", async () => {
+    getStats.mockResolvedValue([]);
+    renderPage("/stats?tags=Rope");
+    await waitFor(() =>
       expect(screen.getAllByText("No data for the current filters.")).toHaveLength(
         STATS_CHARTS.length
       )

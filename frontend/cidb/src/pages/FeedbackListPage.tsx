@@ -241,7 +241,7 @@ export function FeedbackListPage() {
   return (
     <div className="space-y-4 max-w-[1400px] mx-auto w-full">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Feedback</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Feedback</h1>
       </div>
 
       <div className="flex items-center gap-4">

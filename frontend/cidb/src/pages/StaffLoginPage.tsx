@@ -49,7 +49,7 @@ export function StaffLoginPage() {
         <Card className="w-full max-w-md text-center">
           <CardHeader>
             <CardTitle className="text-2xl">
-              {isAuthenticated ? `Hello ${user.name.split(" ")[0]}!` : "Staff Login"}
+              {isAuthenticated ? `Hello ${user.name.split(" ")[0]}!` : "Staff login"}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -71,7 +71,7 @@ export function StaffLoginPage() {
     <div className="flex items-center justify-center min-h-[60vh]">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Staff Login</CardTitle>
+          <CardTitle className="text-2xl">Staff login</CardTitle>
           <CardDescription className="text-base">Sign in to access staff features</CardDescription>
         </CardHeader>
         <CardContent>

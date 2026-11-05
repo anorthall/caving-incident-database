@@ -6,6 +6,7 @@ import { IncidentLayoutFlat } from "@/components/incidents/IncidentLayoutFlat";
 import { EditIncidentSheet } from "@/components/staff/EditIncidentSheet";
 import { RevisionHistory } from "@/components/staff/RevisionHistory";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { RelatedIncidents } from "@/features/browse/RelatedIncidents";
 import { getIncident } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
@@ -38,8 +39,12 @@ export function IncidentPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <p className="text-muted-foreground">Loading...</p>
+      <div className="flex flex-col gap-3" aria-busy="true">
+        <Skeleton className="h-9 w-3/4" />
+        <Skeleton className="h-5 w-1/2" />
+        <Skeleton className="mt-8 h-28 w-full" />
+        <Skeleton className="mt-8 h-6 w-32" />
+        <Skeleton className="h-64 w-full" />
       </div>
     );
   }

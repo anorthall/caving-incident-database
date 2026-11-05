@@ -1,11 +1,11 @@
 import { usePageMeta } from "@/hooks/use-page-meta";
 
 export function PrivacyPage() {
-  usePageMeta("Privacy Policy", "How the Caving Incident Database handles your data.");
+  usePageMeta("Privacy policy", "How the Caving Incident Database handles your data.");
   return (
     <article className="space-y-8">
       <header className="space-y-2">
-        <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight">Privacy Policy</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Privacy policy</h1>
         <p className="text-muted-foreground">Last updated: January 2025</p>
       </header>
 
@@ -15,14 +15,12 @@ export function PrivacyPage() {
       </p>
 
       <section className="space-y-4">
-        <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight">
-          Information We Collect
+        <h2 className="border-b pb-2 text-xl font-semibold tracking-tight">
+          Information we collect
         </h2>
 
         <div className="space-y-4">
-          <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
-            Automatically Collected Data
-          </h3>
+          <h3 className="text-lg font-semibold tracking-tight">Automatically collected data</h3>
           <p className="leading-7">
             When you visit CIDB, we automatically collect certain information for monitoring,
             security, and service improvement purposes:
@@ -47,7 +45,7 @@ export function PrivacyPage() {
         </div>
 
         <div className="space-y-4">
-          <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">Client-Side Storage</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Client-side storage</h3>
           <p className="leading-7">
             For your convenience, we store certain preferences and history locally in your browser:
           </p>
@@ -74,9 +72,7 @@ export function PrivacyPage() {
         </div>
 
         <div className="space-y-4">
-          <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
-            Feedback and Reports
-          </h3>
+          <h3 className="text-lg font-semibold tracking-tight">Feedback and reports</h3>
           <p className="leading-7">When you submit feedback or report an issue with an incident:</p>
           <ul className="my-6 ml-6 list-disc space-y-2">
             <li>
@@ -100,8 +96,8 @@ export function PrivacyPage() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight">
-          Personal Data in Incident Reports
+        <h2 className="border-b pb-2 text-xl font-semibold tracking-tight">
+          Personal data in incident reports
         </h2>
         <p className="leading-7">
           CIDB contains historical records of caving incidents compiled from published sources,
@@ -123,14 +119,10 @@ export function PrivacyPage() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight">
-          Third-Party Services
-        </h2>
+        <h2 className="border-b pb-2 text-xl font-semibold tracking-tight">Third-party services</h2>
 
         <div className="space-y-4">
-          <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
-            Sentry (Error Monitoring)
-          </h3>
+          <h3 className="text-lg font-semibold tracking-tight">Sentry (error monitoring)</h3>
           <p className="leading-7">
             We use{" "}
             <a
@@ -164,7 +156,7 @@ export function PrivacyPage() {
         </div>
 
         <div className="space-y-4">
-          <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">Google Analytics</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Google Analytics</h3>
           <p className="leading-7">
             We use Google Analytics to understand how visitors interact with CIDB. This service
             collects anonymized usage data including pages visited, time spent on site, and general
@@ -184,7 +176,7 @@ export function PrivacyPage() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight">Cookies</h2>
+        <h2 className="border-b pb-2 text-xl font-semibold tracking-tight">Cookies</h2>
         <p className="leading-7">CIDB uses a minimal number of cookies:</p>
         <ul className="my-6 ml-6 list-disc space-y-2">
           <li>
@@ -200,9 +192,7 @@ export function PrivacyPage() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight">
-          Data Retention
-        </h2>
+        <h2 className="border-b pb-2 text-xl font-semibold tracking-tight">Data retention</h2>
         <ul className="my-6 ml-6 list-disc space-y-2">
           <li>
             Server logs containing IP addresses are retained for a limited period for security and
@@ -220,9 +210,7 @@ export function PrivacyPage() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight">
-          Your Rights
-        </h2>
+        <h2 className="border-b pb-2 text-xl font-semibold tracking-tight">Your rights</h2>
         <p className="leading-7">You have the right to:</p>
         <ul className="my-6 ml-6 list-disc space-y-2">
           <li>
@@ -239,7 +227,7 @@ export function PrivacyPage() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight">Contact</h2>
+        <h2 className="border-b pb-2 text-xl font-semibold tracking-tight">Contact</h2>
         <p className="leading-7">
           If you have questions about this privacy policy or wish to exercise your data rights,
           please use the feedback button to contact us.
@@ -247,8 +235,8 @@ export function PrivacyPage() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight">
-          Changes to This Policy
+        <h2 className="border-b pb-2 text-xl font-semibold tracking-tight">
+          Changes to this policy
         </h2>
         <p className="leading-7">
           We may update this privacy policy from time to time. Any changes will be reflected on this

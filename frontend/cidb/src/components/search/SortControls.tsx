@@ -1,6 +1,6 @@
 import type { ColumnVisibilityState } from "@tanstack/react-table";
 import type { ReactNode } from "react";
-import { ArrowDownAZ, ArrowUpAZ, List, Settings2, Table2 } from "lucide-react";
+import { ArrowDownWideNarrow, ArrowUpNarrowWide, List, Settings2, Table2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -16,15 +16,15 @@ import type { SortField, SortOrder } from "@/lib/api";
 export type ViewMode = "cards" | "table";
 
 const COLUMN_LABELS: Record<string, string> = {
-  title: "Title",
   date: "Date",
+  title: "Title",
   cave_name: "Cave",
   location_summary: "Location",
   view_count: "Views",
   tags: "Tags",
 };
 
-const ALL_COLUMNS = ["title", "date", "cave_name", "location_summary", "view_count", "tags"];
+const ALL_COLUMNS = ["date", "title", "cave_name", "location_summary", "view_count", "tags"];
 
 interface SortControlsProps {
   sortBy: SortField;
@@ -74,90 +74,66 @@ export function SortControls({
           )}
         </p>
       )}
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          {viewMode === "cards" && (
-            <>
-              <ToggleGroup
-                type="single"
-                value={sortBy}
-                onValueChange={(v) => v && onSortByChange(v as SortField)}
-                variant="outline"
-              >
-                <ToggleGroupItem value="date" aria-label="Sort by date">
-                  Date
+      <div className="flex flex-wrap items-center gap-2">
+        {viewMode === "cards" && (
+          <div className="flex items-center gap-2">
+            <ToggleGroup
+              type="single"
+              value={sortBy}
+              onValueChange={(v) => v && onSortByChange(v as SortField)}
+              variant="outline"
+            >
+              <ToggleGroupItem value="date" aria-label="Sort by date">
+                Date
+              </ToggleGroupItem>
+              {hasQuery && (
+                <ToggleGroupItem value="relevance" aria-label="Sort by relevance">
+                  Relevance
                 </ToggleGroupItem>
-                {hasQuery && (
-                  <ToggleGroupItem value="relevance" aria-label="Sort by relevance">
-                    Relevance
-                  </ToggleGroupItem>
-                )}
-              </ToggleGroup>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onSortOrderChange(sortOrder === "asc" ? "desc" : "asc")}
-                title={sortOrder === "asc" ? "Ascending" : "Descending"}
-              >
-                {sortOrder === "asc" ? (
-                  <ArrowUpAZ className="h-4 w-4" />
-                ) : (
-                  <ArrowDownAZ className="h-4 w-4" />
-                )}
-              </Button>
-            </>
-          )}
-        </div>
-
-        {actions}
-
-        {viewMode === "cards" ? (
-          <div className="hidden sm:flex items-center gap-1">
-            <Button
-              variant="secondary"
-              size="icon"
-              onClick={() => onViewModeChange("cards")}
-              title="List view"
-            >
-              <List className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onViewModeChange("table")}
-              title="Table view"
-            >
-              <Table2 className="h-4 w-4" />
-            </Button>
-          </div>
-        ) : (
-          <div className="flex flex-wrap items-center gap-2">
-            <ToggleGroup type="single" value={viewMode} variant="outline">
-              <ToggleGroupItem
-                value="cards"
-                aria-label="List view"
-                onClick={() => onViewModeChange("cards")}
-                className="gap-2"
-              >
-                <List className="h-4 w-4" />
-                List
-              </ToggleGroupItem>
-              <ToggleGroupItem
-                value="table"
-                aria-label="Table view"
-                onClick={() => onViewModeChange("table")}
-                className="gap-2"
-              >
-                <Table2 className="h-4 w-4" />
-                Table
-              </ToggleGroupItem>
+              )}
             </ToggleGroup>
 
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => onSortOrderChange(sortOrder === "asc" ? "desc" : "asc")}
+              aria-label={sortOrder === "asc" ? "Sort descending" : "Sort ascending"}
+              title={sortOrder === "asc" ? "Ascending" : "Descending"}
+            >
+              {sortOrder === "asc" ? (
+                <ArrowUpNarrowWide className="h-4 w-4" />
+              ) : (
+                <ArrowDownWideNarrow className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        )}
+
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          {actions}
+
+          <ToggleGroup
+            type="single"
+            value={viewMode}
+            onValueChange={(v) => v && onViewModeChange(v as ViewMode)}
+            variant="outline"
+            className="hidden sm:flex"
+          >
+            <ToggleGroupItem value="cards" aria-label="List view" className="gap-2">
+              <List className="h-4 w-4" />
+              List
+            </ToggleGroupItem>
+            <ToggleGroupItem value="table" aria-label="Table view" className="gap-2">
+              <Table2 className="h-4 w-4" />
+              Table
+            </ToggleGroupItem>
+          </ToggleGroup>
+
+          {viewMode === "table" && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-9">
-                  <Settings2 className="mr-2 h-4 w-4" />
+                <Button variant="outline">
+                  <Settings2 className="h-4 w-4" />
                   Columns
                 </Button>
               </DropdownMenuTrigger>
@@ -175,8 +151,8 @@ export function SortControls({
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

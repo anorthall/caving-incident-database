@@ -30,6 +30,10 @@ def test_from_date_full_date() -> None:
     assert str(date) == "June 15, 2024"
 
 
+def test_day_display_is_not_zero_padded() -> None:
+    assert str(ImpreciseDate.from_date(1994, 7, 1)) == "July 1, 1994"
+
+
 def test_from_date_invalid_year_zero() -> None:
     with pytest.raises(ValueError, match="positive integer"):
         ImpreciseDate.from_date(0)

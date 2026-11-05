@@ -1,10 +1,11 @@
 import { Fragment } from "react";
 import { Link } from "react-router-dom";
-import { Calendar, Eye, MapPin, Mountain, Sparkles, Users } from "lucide-react";
+import { Calendar, Eye, MapPin, Mountain, Sparkles } from "lucide-react";
 
 import { filterHref } from "@/features/search/filters";
 import { Badge } from "@/components/ui/badge";
 import type { IncidentDetail } from "@/lib/api";
+import { formatTimestamp } from "@/lib/format";
 import { isIncidentViewed } from "@/lib/viewed-incidents";
 
 const PIVOT_LINK_CLASS =
@@ -98,7 +99,7 @@ export function IncidentLayoutFlat({ incident }: IncidentLayoutProps) {
             <Sparkles className="h-3 w-3" />
             <span>AI-generated summary</span>
           </div>
-          <blockquote className="border-l-4 border-primary/30 pl-4 text-lg leading-relaxed">
+          <blockquote className="border-l-4 border-primary/30 pl-4 leading-7 sm:text-lg sm:leading-relaxed">
             {incident.summary}
           </blockquote>
         </div>
@@ -107,9 +108,7 @@ export function IncidentLayoutFlat({ incident }: IncidentLayoutProps) {
       {/* Report */}
       {incident.report && (
         <section className="mb-12">
-          <h2 className="text-sm font-medium tracking-tight text-muted-foreground uppercase mb-3">
-            Report
-          </h2>
+          <h2 className="text-xl font-semibold tracking-tight mb-3">Report</h2>
           <p className="whitespace-pre-wrap leading-7">{incident.report}</p>
         </section>
       )}
@@ -117,9 +116,7 @@ export function IncidentLayoutFlat({ incident }: IncidentLayoutProps) {
       {/* Analysis */}
       {incident.analysis && (
         <section className="mb-12">
-          <h2 className="text-sm font-medium tracking-tight text-muted-foreground uppercase mb-3">
-            Analysis
-          </h2>
+          <h2 className="text-xl font-semibold tracking-tight mb-3">Analysis</h2>
           <p className="whitespace-pre-wrap leading-7">{incident.analysis}</p>
         </section>
       )}
@@ -127,9 +124,7 @@ export function IncidentLayoutFlat({ incident }: IncidentLayoutProps) {
       {/* References */}
       {hasSources && (
         <section className="mb-12">
-          <h2 className="text-sm font-medium tracking-tight text-muted-foreground uppercase mb-3">
-            Sources
-          </h2>
+          <h2 className="text-xl font-semibold tracking-tight mb-3">Sources</h2>
 
           {incident.origin_publication && (
             <p className="text-sm text-muted-foreground mb-4">
@@ -153,8 +148,7 @@ export function IncidentLayoutFlat({ incident }: IncidentLayoutProps) {
 
       {incident.people.length > 0 && (
         <section className="mb-8" aria-labelledby="people-involved">
-          <h2 id="people-involved" className="mb-3 flex items-center gap-2 text-lg font-semibold">
-            <Users className="h-4 w-4" />
+          <h2 id="people-involved" className="text-xl font-semibold tracking-tight mb-3">
             People involved
           </h2>
           <ul className="divide-y divide-border text-sm">
@@ -178,11 +172,11 @@ export function IncidentLayoutFlat({ incident }: IncidentLayoutProps) {
 
       {/* Metadata */}
       <footer className="text-xs text-muted-foreground mb-12">
-        <span>Added {new Date(incident.created_at).toLocaleDateString()}</span>
+        <span>Added {formatTimestamp(incident.created_at)}</span>
         {incident.updated_at !== incident.created_at && (
           <>
             <span className="mx-2">·</span>
-            <span>Updated {new Date(incident.updated_at).toLocaleDateString()}</span>
+            <span>Updated {formatTimestamp(incident.updated_at)}</span>
           </>
         )}
       </footer>

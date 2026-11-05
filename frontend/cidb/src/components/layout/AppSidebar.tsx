@@ -34,6 +34,7 @@ import { getPendingFeedbackCount, getRandomIncidentId } from "@/lib/api.ts";
 import { useAuth } from "@/lib/auth-context.tsx";
 import useFeedback from "@/lib/feedback-context.tsx";
 import { useTheme } from "@/lib/theme.tsx";
+import { cn } from "@/lib/utils";
 import {
   clearViewedIncidents,
   getViewedIncidents,
@@ -177,11 +178,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <SidebarMenuButton
                   onClick={handleRandomIncident}
                   disabled={isLoadingRandom}
-                  tooltip="Random Incident"
+                  tooltip="Random incident"
                   className="cursor-pointer"
                 >
                   <Dices className={`h-4 w-4 ${isLoadingRandom ? "animate-spin" : ""}`} />
-                  <span>Random Incident</span>
+                  <span>Random incident</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -211,7 +212,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       <img
                         src={isDarkMode ? item.imageDark : item.imageLight}
                         alt=""
-                        className="h-4.5 w-4.5 shrink-0 object-contain"
+                        className="h-4 w-4 shrink-0 object-contain"
                       />
                     ) : (
                       <item.icon className="h-4 w-4" />
@@ -321,14 +322,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
 
       <SidebarFooter
-        className={historyEnabled && viewedIncidents.length > 0 && !isCollapsed ? "border-t" : ""}
+        className={cn(
+          "p-0",
+          historyEnabled && viewedIncidents.length > 0 && !isCollapsed && "border-t"
+        )}
       >
         {historyEnabled && viewedIncidents.length > 0 && !isCollapsed && (
           <SidebarGroup>
-            <SidebarGroupLabel>Recently Viewed</SidebarGroupLabel>
+            <SidebarGroupLabel>Recently viewed</SidebarGroupLabel>
             <SidebarGroupAction
               onClick={handleClearViewed}
               title="Clear recently viewed"
+              aria-label="Clear recently viewed"
               className="cursor-pointer text-muted-foreground"
             >
               <X />

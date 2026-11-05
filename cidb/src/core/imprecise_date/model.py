@@ -103,7 +103,7 @@ class ImpreciseDate:
                     raise ValueError("Season must be set for seasonal precision.")
                 return f"{season.title()} {date.year}"
             case DatePrecision.DAY:
-                return date.strftime("%B %d, %Y")
+                return f"{date:%B} {date.day}, {date.year}"
             case _:
                 assert_never(precision)
 

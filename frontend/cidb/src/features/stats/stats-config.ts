@@ -51,7 +51,7 @@ export const STATS_CHARTS: StatsChartConfig[] = [
     groupBy: "age_bucket",
     title: "Age distribution",
     description: "Age of people involved, where recorded",
-    formatLabel: identity,
+    formatLabel: (label) => label.replace("-", "\u2013"),
   },
 ];
 
