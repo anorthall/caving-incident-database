@@ -5,6 +5,7 @@ import { Link, useParams } from "react-router-dom";
 import { IncidentLayoutFlat } from "@/components/incidents/IncidentLayoutFlat";
 import { Button } from "@/components/ui/button";
 import { getIncident } from "@/lib/api";
+import { usePageMeta } from "@/hooks/use-page-meta";
 import { markIncidentViewed } from "@/lib/viewed-incidents";
 
 export function IncidentPage() {
@@ -20,6 +21,8 @@ export function IncidentPage() {
     queryFn: () => getIncident(incidentId),
     enabled: !isNaN(incidentId),
   });
+
+  usePageMeta(incident?.title ?? null, incident?.summary || "Caving incident report.");
 
   useEffect(() => {
     if (incident) {

@@ -340,3 +340,6 @@ UNFOLD = {
         ],
     },
 }
+
+SITEMAP_PATH = env.str("SITEMAP_PATH", default=str(BASE_DIR / "sitemap.xml"))
+SITE_URL = env.str("SITE_URL", default="http://127.0.0.1")
