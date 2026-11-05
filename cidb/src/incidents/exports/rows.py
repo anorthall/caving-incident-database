@@ -32,8 +32,12 @@ class IncidentExportRow(BaseModel):
             country=location.country_text if location else "",
             state=location.state_text if location else "",
             region=location.region_text if location else "",
-            latitude=float(location.latitude) if location and location.latitude else None,
-            longitude=float(location.longitude) if location and location.longitude else None,
+            latitude=(
+                float(location.latitude) if location and location.latitude is not None else None
+            ),
+            longitude=(
+                float(location.longitude) if location and location.longitude is not None else None
+            ),
             tags="; ".join(sorted(tag.name for tag in incident.tags.all())),
             summary=incident.summary,
             url=f"/incidents/{incident.pk}",
