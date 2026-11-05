@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { History } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { getIncidentRevisions, type FieldChange } from "@/lib/api";
 
 function formatValue(value: string | string[]): string {
@@ -23,7 +24,12 @@ function ChangeRow({ field, change }: { field: string; change: FieldChange }) {
 }
 
 export function RevisionHistory({ incidentId }: { incidentId: number }) {
-  const { data: revisions, isLoading } = useQuery({
+  const {
+    data: revisions,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: ["incident-revisions", incidentId],
     queryFn: () => getIncidentRevisions(incidentId),
   });
@@ -38,6 +44,14 @@ export function RevisionHistory({ incidentId }: { incidentId: number }) {
         Revision history
       </h2>
       {isLoading && <p className="text-sm text-muted-foreground">Loading...</p>}
+      {isError && (
+        <div className="flex flex-wrap items-center gap-3 text-sm">
+          <p className="text-destructive">Failed to load revision history</p>
+          <Button variant="outline" size="sm" className="cursor-pointer" onClick={() => refetch()}>
+            Retry
+          </Button>
+        </div>
+      )}
       {revisions && revisions.length === 0 && (
         <p className="text-sm text-muted-foreground">No edits yet.</p>
       )}
