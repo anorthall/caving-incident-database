@@ -9,6 +9,7 @@ from ninja.errors import HttpError
 from cidb.src.incidents.api.schemas.common import PaginatedResponse
 from cidb.src.incidents.api.schemas.facets import (
     DecadeFacetSchema,
+    EntityFacetSchema,
     FacetValueSchema,
     IncidentFacetsSchema,
     StatRowSchema,
@@ -126,6 +127,12 @@ def get_facets(request: HttpRequest, filters: Query[IncidentFilters]) -> Inciden
         countries=[FacetValueSchema(value=f.value, count=f.count) for f in facets.countries],
         states=[FacetValueSchema(value=f.value, count=f.count) for f in facets.states],
         tags=[FacetValueSchema(value=f.value, count=f.count) for f in facets.tags],
+        regions=[FacetValueSchema(value=f.value, count=f.count) for f in facets.regions],
+        injuries=[FacetValueSchema(value=f.value, count=f.count) for f in facets.injuries],
+        caves=[EntityFacetSchema(id=f.id, name=f.name, count=f.count) for f in facets.caves],
+        publications=[
+            EntityFacetSchema(id=f.id, name=f.name, count=f.count) for f in facets.publications
+        ],
         decades=[DecadeFacetSchema(decade=d.decade, count=d.count) for d in facets.decades],
         year_min=facets.year_min,
         year_max=facets.year_max,
@@ -215,6 +222,7 @@ def get_incident(request: HttpRequest, incident_id: int) -> IncidentDetailSchema
         ).prefetch_related(
             "tags",
             "references",
+            "persons_involved__injuries",
         ),
         pk=incident_id,
     )

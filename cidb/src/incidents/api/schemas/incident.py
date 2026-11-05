@@ -36,6 +36,11 @@ class IncidentReferenceSchema(Schema):
     raw_citation: str
 
 
+class PersonInvolvedSchema(Schema):
+    age_at_incident: int | None
+    injuries: list[str]
+
+
 class IncidentListSchema(Schema):
     id: int
     title: str
@@ -86,6 +91,7 @@ class IncidentDetailSchema(Schema):
     tags: list[TagSchema]
     origin_publication: PublicationSchema | None = None
     references: list[IncidentReferenceSchema]
+    people: list[PersonInvolvedSchema]
     created_at: str
     updated_at: str
 
@@ -134,6 +140,13 @@ class IncidentDetailSchema(Schema):
             if incident.origin
             else None,
             references=references,
+            people=[
+                PersonInvolvedSchema(
+                    age_at_incident=p.age_at_incident,
+                    injuries=sorted(i.description for i in p.injuries.all()),
+                )
+                for p in incident.persons_involved.all()
+            ],
             created_at=incident.created_at.isoformat(),
             updated_at=incident.updated_at.isoformat(),
         )

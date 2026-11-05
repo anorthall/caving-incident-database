@@ -32,6 +32,7 @@ const incident: IncidentDetail = {
   ],
   origin_publication: null,
   references: [],
+  people: [{ age_at_incident: 31, injuries: ["Broken leg"] }],
   created_at: "2020-01-01T00:00:00Z",
   updated_at: "2020-01-01T00:00:00Z",
 };

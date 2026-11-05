@@ -7,7 +7,17 @@ import { exportUrl } from "@/lib/api";
 
 import { DownloadMenu } from "../DownloadMenu";
 
-const FILTERS = { q: "rope", tags: ["Rescue"], states: [], countries: ["Mexico"], year_from: 1990 };
+const FILTERS = {
+  q: "rope",
+  tags: ["Rescue"],
+  states: [],
+  countries: ["Mexico"],
+  regions: [],
+  injuries: [],
+  caves: [],
+  publications: [],
+  year_from: 1990,
+};
 
 describe("exportUrl", () => {
   it("includes filters and format", () => {

@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { StatsPage } from "@/pages/StatsPage";
 
+import { EMPTY_FILTERS } from "@/features/search/filters";
+
 import { STATS_CHARTS } from "../stats-config";
 
 const getStats = vi.hoisted(() => vi.fn());
@@ -51,7 +53,7 @@ describe("StatsPage", () => {
 });
 
 describe("chart links", () => {
-  const empty = { tags: [], states: [], countries: [] };
+  const empty = EMPTY_FILTERS;
 
   it("links decades to a year range", () => {
     const href = STATS_CHARTS[0].href?.(empty, "1990");

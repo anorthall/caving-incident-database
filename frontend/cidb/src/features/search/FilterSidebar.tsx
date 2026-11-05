@@ -1,9 +1,11 @@
+import { MapPin } from "lucide-react";
 import { Fragment, useId, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Toggle } from "@/components/ui/toggle";
 
 import { FacetGroup } from "./FacetGroup";
 import { isFacetGroupVisible, parseYear } from "./filters";
@@ -87,6 +89,21 @@ function YearGroup({ yearMin, yearMax }: YearGroupProps) {
   );
 }
 
+function LocationToggle() {
+  const { filters, setHasLocation } = useIncidentFilters();
+  return (
+    <Toggle
+      size="sm"
+      className="w-full cursor-pointer justify-start"
+      pressed={filters.has_location === true}
+      onPressedChange={(pressed) => setHasLocation(pressed ? true : undefined)}
+    >
+      <MapPin className="h-4 w-4" />
+      Has map location
+    </Toggle>
+  );
+}
+
 export function FilterSidebar() {
   const { filters, toggle } = useIncidentFilters();
   const { data, isError } = useFacets(filters);
@@ -105,6 +122,24 @@ export function FilterSidebar() {
   const groups = [
     { dimension: "tags", label: "Tag", values: data.tags, selected: filters.tags },
     { dimension: "states", label: "State", values: data.states, selected: filters.states },
+    { dimension: "regions", label: "Region", values: data.regions, selected: filters.regions },
+    { dimension: "injuries", label: "Injury", values: data.injuries, selected: filters.injuries },
+    {
+      dimension: "caves",
+      label: "Cave",
+      values: data.caves.map((c) => ({ value: String(c.id), label: c.name, count: c.count })),
+      selected: filters.caves,
+    },
+    {
+      dimension: "publications",
+      label: "Publication",
+      values: data.publications.map((p) => ({
+        value: String(p.id),
+        label: p.name,
+        count: p.count,
+      })),
+      selected: filters.publications,
+    },
     {
       dimension: "countries",
       label: "Country",
@@ -116,7 +151,7 @@ export function FilterSidebar() {
   return (
     <div className="flex flex-col gap-4 p-1">
       {groups
-        .filter((group) => isFacetGroupVisible(group.values, group.selected))
+        .filter((group) => isFacetGroupVisible(group.values, group.selected, data.total))
         .map((group) => (
           <Fragment key={group.dimension}>
             <FacetGroup
@@ -128,6 +163,8 @@ export function FilterSidebar() {
             <Separator />
           </Fragment>
         ))}
+      <LocationToggle />
+      <Separator />
       <YearGroup yearMin={data.year_min} yearMax={data.year_max} />
     </div>
   );

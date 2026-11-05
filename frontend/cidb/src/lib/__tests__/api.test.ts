@@ -73,6 +73,10 @@ describe("filter params", () => {
     tags: ["Flooding", "Rope & anchor"],
     states: ["Tennessee"],
     countries: [],
+    regions: [],
+    injuries: [],
+    caves: [],
+    publications: [],
     year_from: 1990,
     year_to: 1999,
   };
@@ -111,9 +115,17 @@ describe("filter params", () => {
     fetchMock.mockResolvedValueOnce(errorResponse(422));
 
     const { getFacets } = await import("../api");
-    await expect(getFacets({ tags: [], states: [], countries: [] })).rejects.toThrow(
-      "Failed to fetch facets"
-    );
+    await expect(
+      getFacets({
+        tags: [],
+        states: [],
+        countries: [],
+        regions: [],
+        injuries: [],
+        caves: [],
+        publications: [],
+      })
+    ).rejects.toThrow("Failed to fetch facets");
   });
 });
 

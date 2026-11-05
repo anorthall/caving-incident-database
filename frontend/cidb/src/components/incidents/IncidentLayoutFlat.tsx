@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import { Link } from "react-router-dom";
-import { Calendar, Eye, MapPin, Mountain, Sparkles } from "lucide-react";
+import { Calendar, Eye, MapPin, Mountain, Sparkles, Users } from "lucide-react";
 
 import { filterHref } from "@/features/search/filters";
 import { Badge } from "@/components/ui/badge";
@@ -148,6 +148,31 @@ export function IncidentLayoutFlat({ incident }: IncidentLayoutProps) {
               ))}
             </ol>
           )}
+        </section>
+      )}
+
+      {incident.people.length > 0 && (
+        <section className="mb-8" aria-labelledby="people-involved">
+          <h2 id="people-involved" className="mb-3 flex items-center gap-2 text-lg font-semibold">
+            <Users className="h-4 w-4" />
+            People involved
+          </h2>
+          <ul className="divide-y divide-border text-sm">
+            {incident.people.map((person, i) => (
+              <li key={i} className="flex flex-col gap-1 py-3 sm:flex-row sm:justify-between">
+                <span>
+                  {person.age_at_incident === null
+                    ? "Age not published"
+                    : `Age ${person.age_at_incident}`}
+                </span>
+                <span className="text-muted-foreground">
+                  {person.injuries.length > 0
+                    ? person.injuries.join(", ")
+                    : "No injuries published"}
+                </span>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 
