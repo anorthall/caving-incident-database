@@ -1,7 +1,8 @@
 import { Monitor, Moon, Sun } from "lucide-react";
 import * as React from "react";
 import { useCallback, useEffect, useState } from "react";
-import { Outlet, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useIncidentFilters } from "@/features/search/use-incident-filters";
 import { useStaffCommands } from "@/hooks/use-staff-commands";
 
 import { AppSidebar } from "@/components/layout/AppSidebar.tsx";
@@ -30,9 +31,9 @@ export function RootLayout() {
   const sidebarOpen = getSidebarStateFromCookie();
   const navigate = useNavigate();
   const isSearchRoute = useLocation().pathname === "/";
-  const [searchParams] = useSearchParams();
-  const isLanding = isSearchRoute && searchParams.size === 0;
-  const urlQuery = isSearchRoute ? (searchParams.get("q") ?? "") : "";
+  const { filters, hasFilters } = useIncidentFilters();
+  const isLanding = isSearchRoute && !filters.q && !hasFilters;
+  const urlQuery = isSearchRoute ? (filters.q ?? "") : "";
   const { handleStaffCommand } = useStaffCommands();
   const [query, setQuery] = useState(urlQuery);
   const [prevUrlQuery, setPrevUrlQuery] = useState(urlQuery);

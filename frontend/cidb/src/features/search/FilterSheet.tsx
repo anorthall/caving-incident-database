@@ -34,7 +34,13 @@ export function FilterSheet({ resultCount, className }: FilterSheetProps) {
           {activeCount > 0 && <Badge variant="secondary">{activeCount}</Badge>}
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" onOpenAutoFocus={(event) => event.preventDefault()}>
+      <SheetContent
+        side="left"
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+          (event.currentTarget as HTMLElement).focus();
+        }}
+      >
         <SheetHeader>
           <SheetTitle>Filters</SheetTitle>
           <SheetDescription className="sr-only">
