@@ -10,6 +10,8 @@ from cidb.src.incidents.api.schemas.facets import (
     DecadeFacetSchema,
     FacetValueSchema,
     IncidentFacetsSchema,
+    IncidentGeoSchema,
+    MapPointSchema,
 )
 from cidb.src.incidents.api.schemas.incident import (
     IncidentDetailSchema,
@@ -85,6 +87,21 @@ def get_facets(request: HttpRequest, filters: Query[IncidentFilters]) -> Inciden
         decades=[DecadeFacetSchema(decade=d.decade, count=d.count) for d in facets.decades],
         year_min=facets.year_min,
         year_max=facets.year_max,
+    )
+
+
+@router.get("/geo", response=IncidentGeoSchema)
+def get_geo(request: HttpRequest, filters: Query[IncidentFilters]) -> IncidentGeoSchema:
+    result = IncidentQuery.points(filters)
+    return IncidentGeoSchema(
+        points=[
+            MapPointSchema(
+                id=p.id, title=p.title, latitude=p.latitude, longitude=p.longitude, year=p.year
+            )
+            for p in result.points
+        ],
+        total=result.total,
+        without_location=result.without_location,
     )
 
 

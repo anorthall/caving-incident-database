@@ -18,6 +18,8 @@ import { StaffLoginPage } from "@/pages/StaffLoginPage";
 import * as Sentry from "@sentry/react";
 import * as React from "react";
 
+const MapPage = React.lazy(() => import("@/pages/MapPage"));
+
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
   integrations: [
@@ -48,6 +50,14 @@ function App() {
         <Route element={<RootLayout />}>
           <Route path="/" element={<SearchPage />} />
           <Route path="/incidents/:id" element={<IncidentPage />} />
+          <Route
+            path="/map"
+            element={
+              <React.Suspense fallback={null}>
+                <MapPage />
+              </React.Suspense>
+            }
+          />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/staff/login" element={<StaffLoginPage />} />
           <Route path="/staff/feedback" element={<FeedbackListPage />} />

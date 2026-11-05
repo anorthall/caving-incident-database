@@ -13,6 +13,7 @@ from cidb.src.incidents.queries.filters import IncidentFilters
 MAX_COUNTRY_FACETS = 20
 MAX_STATE_FACETS = 60
 MAX_TAG_FACETS = 40
+MAX_MAP_POINTS = 5000
 
 
 class SortBy(StrEnum):
@@ -58,6 +59,22 @@ class IncidentFacets:
     decades: list[DecadeFacet]
     year_min: int | None
     year_max: int | None
+
+
+@dataclass(frozen=True)
+class MapPoint:
+    id: int
+    title: str
+    latitude: float
+    longitude: float
+    year: int | None
+
+
+@dataclass(frozen=True)
+class MapPoints:
+    points: list[MapPoint]
+    total: int
+    without_location: int
 
 
 class IncidentQuery:
@@ -127,6 +144,27 @@ class IncidentQuery:
         if sort_by == SortBy.RELEVANCE and filters.q:
             relevance = {i.pk: round(cls._relevance_of(i), 2) for i in incidents}
         return IncidentPageResult(total=total, incidents=incidents, relevance=relevance)
+
+    @classmethod
+    def points(cls, filters: IncidentFilters) -> MapPoints:
+        queryset = cls.apply(Incident.objects.all(), filters)
+        located = queryset.filter(
+            cave__location__latitude__isnull=False, cave__location__longitude__isnull=False
+        )
+        rows = located.order_by("-date", "id").values_list(
+            "id", "title", "cave__location__latitude", "cave__location__longitude", "date_year"
+        )[:MAX_MAP_POINTS]
+        points = [
+            MapPoint(id=pk, title=title, latitude=float(lat), longitude=float(lng), year=year)
+            for pk, title, lat, lng, year in rows
+            if lat is not None and lng is not None
+        ]
+        total = located.count()
+        return MapPoints(
+            points=points,
+            total=total,
+            without_location=queryset.count() - total,
+        )
 
     @classmethod
     def facets(cls, filters: IncidentFilters) -> IncidentFacets:

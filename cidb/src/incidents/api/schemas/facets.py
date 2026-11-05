@@ -19,3 +19,17 @@ class IncidentFacetsSchema(Schema):
     decades: list[DecadeFacetSchema]
     year_min: int | None
     year_max: int | None
+
+
+class MapPointSchema(Schema):
+    id: int
+    title: str
+    latitude: float
+    longitude: float
+    year: int | None
+
+
+class IncidentGeoSchema(Schema):
+    points: list[MapPointSchema]
+    total: int
+    without_location: int

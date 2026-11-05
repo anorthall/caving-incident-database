@@ -491,3 +491,30 @@ export async function resolveFeedback(
 
   return response.json();
 }
+
+export interface MapPoint {
+  id: number;
+  title: string;
+  latitude: number;
+  longitude: number;
+  year: number | null;
+}
+
+export interface IncidentGeo {
+  points: MapPoint[];
+  total: number;
+  without_location: number;
+}
+
+export async function getIncidentGeo(filters: IncidentFilters): Promise<IncidentGeo> {
+  const searchParams = new URLSearchParams();
+  appendFilterParams(searchParams, filters);
+
+  const response = await fetchWithRetry(`${API_BASE_URL}/incidents/geo?${searchParams.toString()}`);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch map data: ${response.statusText}`);
+  }
+
+  return response.json();
+}
