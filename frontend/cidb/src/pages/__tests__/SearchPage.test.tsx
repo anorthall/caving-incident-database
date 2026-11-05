@@ -11,6 +11,7 @@ const searchIncidents = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/api", () => ({
   searchIncidents,
   trackSearchClick: vi.fn(),
+  exportUrl: vi.fn(() => "/export"),
 }));
 
 vi.mock("@/hooks/use-staff-commands", () => ({

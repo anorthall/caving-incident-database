@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router-dom";
 
 import { IncidentLayoutFlat } from "@/components/incidents/IncidentLayoutFlat";
 import { Button } from "@/components/ui/button";
+import { RelatedIncidents } from "@/features/browse/RelatedIncidents";
 import { getIncident } from "@/lib/api";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { markIncidentViewed } from "@/lib/viewed-incidents";
@@ -49,5 +50,10 @@ export function IncidentPage() {
     );
   }
 
-  return <IncidentLayoutFlat incident={incident} />;
+  return (
+    <>
+      <IncidentLayoutFlat incident={incident} />
+      <RelatedIncidents incidentId={incident.id} />
+    </>
+  );
 }

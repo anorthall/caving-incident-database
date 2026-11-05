@@ -8,6 +8,8 @@ import {
 } from "react-router-dom";
 import { RootLayout } from "@/components/layout/SidebarLayout";
 import { Toaster } from "@/components/ui/sonner";
+import { BrowsePage } from "@/pages/BrowsePage";
+import { DataPage } from "@/pages/DataPage";
 import { FeedbackDetailPage } from "@/pages/FeedbackDetailPage";
 import { FeedbackListPage } from "@/pages/FeedbackListPage";
 import { IncidentPage } from "@/pages/IncidentPage";
@@ -48,6 +50,9 @@ function App() {
         <Route element={<RootLayout />}>
           <Route path="/" element={<SearchPage />} />
           <Route path="/incidents/:id" element={<IncidentPage />} />
+          <Route path="/browse" element={<BrowsePage />} />
+          <Route path="/browse/:dimension" element={<BrowsePage />} />
+          <Route path="/data" element={<DataPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/staff/login" element={<StaffLoginPage />} />
           <Route path="/staff/feedback" element={<FeedbackListPage />} />
