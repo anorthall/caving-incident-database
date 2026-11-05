@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import {
   ClipboardList,
   Dices,
-  ExternalLink,
   LogOut,
   DatabaseZap,
   MessageSquare,
@@ -207,16 +206,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 .filter((item) => item.title !== "Feedback")
                 .map((item) => {
                   const isExternal = item.url.startsWith("http") || item.url.startsWith("mailto:");
-                  const iconElement =
-                    "imageLight" in item ? (
-                      <img
-                        src={isDarkMode ? item.imageDark : item.imageLight}
-                        alt=""
-                        className="h-4 w-4 shrink-0 object-contain"
-                      />
-                    ) : (
-                      <item.icon className="h-4 w-4" />
-                    );
+                  const iconElement = <item.icon className="h-4 w-4" />;
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
@@ -239,22 +229,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     </SidebarMenuItem>
                   );
                 })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>NSS</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="caves.org">
-                  <a href="https://caves.org/" target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="h-4 w-4" />
-                    <span>caves.org</span>
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
