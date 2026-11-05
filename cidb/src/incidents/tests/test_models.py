@@ -56,3 +56,30 @@ class TestContentReport:
             description="Test",
         )
         assert report.status == "pending"
+
+
+@pytest.mark.django_db
+class TestIncidentDateYear:
+    @pytest.mark.parametrize(
+        ("date", "year"),
+        [
+            ("1995", 1995),
+            ("1995-summer", 1995),
+            ("1995-03", 1995),
+            ("1995-03-04", 1995),
+            ("", None),
+            ("garbage", None),
+        ],
+    )
+    def test_derived_for_each_precision(
+        self, incident: Incident, date: str, year: int | None
+    ) -> None:
+        incident.date = date
+        incident.save()
+        stored = Incident.objects.values_list("date_year", flat=True).get(pk=incident.pk)
+        assert stored == year
+
+    def test_updates_after_queryset_update(self, incident: Incident) -> None:
+        Incident.objects.filter(pk=incident.pk).update(date="1987-02")
+        incident.refresh_from_db()
+        assert incident.date_year == 1987

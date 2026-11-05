@@ -62,41 +62,52 @@ export function SortControls({
   };
 
   return (
-    <div className="flex items-center justify-between gap-4 mb-4">
-      {viewMode === "cards" ? (
-        <>
-          <div className="flex items-center gap-2">
-            <ToggleGroup
-              type="single"
-              value={sortBy}
-              onValueChange={(v) => v && onSortByChange(v as SortField)}
-              variant="outline"
-            >
-              <ToggleGroupItem value="date" aria-label="Sort by date">
-                Date
-              </ToggleGroupItem>
-              {hasQuery && (
-                <ToggleGroupItem value="relevance" aria-label="Sort by relevance">
-                  Relevance
+    <div className="mb-4">
+      {resultCount !== undefined && (
+        <p className="mb-2 text-sm text-muted-foreground">
+          {resultCount.toLocaleString()} incident{resultCount !== 1 ? "s" : ""}
+          {searchTime !== null && searchTime !== undefined && (
+            <span className="ml-1">({searchTime}ms)</span>
+          )}
+        </p>
+      )}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {viewMode === "cards" && (
+            <>
+              <ToggleGroup
+                type="single"
+                value={sortBy}
+                onValueChange={(v) => v && onSortByChange(v as SortField)}
+                variant="outline"
+              >
+                <ToggleGroupItem value="date" aria-label="Sort by date">
+                  Date
                 </ToggleGroupItem>
-              )}
-            </ToggleGroup>
+                {hasQuery && (
+                  <ToggleGroupItem value="relevance" aria-label="Sort by relevance">
+                    Relevance
+                  </ToggleGroupItem>
+                )}
+              </ToggleGroup>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onSortOrderChange(sortOrder === "asc" ? "desc" : "asc")}
-              title={sortOrder === "asc" ? "Ascending" : "Descending"}
-            >
-              {sortOrder === "asc" ? (
-                <ArrowUpAZ className="h-4 w-4" />
-              ) : (
-                <ArrowDownAZ className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onSortOrderChange(sortOrder === "asc" ? "desc" : "asc")}
+                title={sortOrder === "asc" ? "Ascending" : "Descending"}
+              >
+                {sortOrder === "asc" ? (
+                  <ArrowUpAZ className="h-4 w-4" />
+                ) : (
+                  <ArrowDownAZ className="h-4 w-4" />
+                )}
+              </Button>
+            </>
+          )}
+        </div>
 
-          {/* Hide table view toggle on mobile */}
+        {viewMode === "cards" ? (
           <div className="hidden sm:flex items-center gap-1">
             <Button
               variant="secondary"
@@ -115,21 +126,8 @@ export function SortControls({
               <Table2 className="h-4 w-4" />
             </Button>
           </div>
-        </>
-      ) : (
-        <>
-          <div className="text-sm text-muted-foreground">
-            {resultCount !== undefined && (
-              <>
-                <span className="font-medium text-foreground">{resultCount.toLocaleString()}</span>{" "}
-                result{resultCount !== 1 ? "s" : ""}
-                {searchTime !== null && searchTime !== undefined && (
-                  <span className="ml-1">({searchTime}ms)</span>
-                )}
-              </>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
+        ) : (
+          <div className="flex flex-wrap items-center gap-2">
             <ToggleGroup type="single" value={viewMode} variant="outline">
               <ToggleGroupItem
                 value="cards"
@@ -173,8 +171,8 @@ export function SortControls({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        </>
-      )}
+        )}
+      </div>
     </div>
   );
 }

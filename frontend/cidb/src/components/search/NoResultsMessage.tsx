@@ -1,5 +1,7 @@
 import { useId, useMemo } from "react";
 
+import { Button } from "@/components/ui/button";
+
 const NO_RESULTS_PHRASES = [
   "Keep on diggin'",
   "Nothin' down that hole!",
@@ -27,7 +29,11 @@ const NO_RESULTS_PHRASES = [
   "The grotto giveth not",
 ];
 
-export function NoResultsMessage() {
+interface NoResultsMessageProps {
+  onClearFilters?: () => void;
+}
+
+export function NoResultsMessage({ onClearFilters }: NoResultsMessageProps) {
   const id = useId();
   const phrase = useMemo(() => {
     let hash = 0;
@@ -44,6 +50,11 @@ export function NoResultsMessage() {
         <p className="animate-no-results text-6xl font-bold leading-normal bg-linear-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-500 bg-size-[200%_100%] animate-gradient-x bg-clip-text text-transparent">
           {phrase}
         </p>
+        {onClearFilters && (
+          <Button variant="outline" className="mx-auto cursor-pointer" onClick={onClearFilters}>
+            Clear all filters
+          </Button>
+        )}
       </div>
     </div>
   );

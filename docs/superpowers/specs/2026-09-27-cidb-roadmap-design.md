@@ -258,7 +258,8 @@ and view mode moves into this hook.
 `SearchResults` (cards or table with infinite scroll), `FilterSidebar` (facet groups, a sheet
 on mobile), `FacetGroup`, `ActiveFilterChips` and `ResultsToolbar` (sort, view, count, timing,
 download). Staff commands typed into the search box are removed; staff tools are reached from
-sidebar routes.
+sidebar routes. `RootLayout` widens `<main>` to `max-w-6xl` on the search route (`/`) so the
+filter sidebar sits beside the 3xl results column; other routes stay at `max-w-3xl`.
 
 ### 5.5 Design system additions
 

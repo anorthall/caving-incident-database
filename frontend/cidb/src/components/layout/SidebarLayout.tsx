@@ -1,7 +1,7 @@
 import { Monitor, Moon, Sun } from "lucide-react";
 import * as React from "react";
 import { useCallback, useEffect, useState } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useStaffCommands } from "@/hooks/use-staff-commands";
 
 import { AppSidebar } from "@/components/layout/AppSidebar.tsx";
@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { getCookie } from "@/lib/cookies";
 import { useTheme } from "@/lib/theme";
+import { cn } from "@/lib/utils";
 import { MOBILE_BREAKPOINT, SIDEBAR_COOKIE_KEY } from "@/constants.ts";
 
 function getSidebarStateFromCookie(): boolean {
@@ -26,6 +27,7 @@ function getSidebarStateFromCookie(): boolean {
 export function RootLayout() {
   const sidebarOpen = getSidebarStateFromCookie();
   const navigate = useNavigate();
+  const isSearchRoute = useLocation().pathname === "/";
   const { handleStaffCommand } = useStaffCommands();
   const [query, setQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -118,7 +120,12 @@ export function RootLayout() {
             </div>
           </header>
 
-          <main className="mx-auto px-4 py-6 grow w-full max-w-3xl">
+          <main
+            className={cn(
+              "mx-auto px-4 py-6 grow w-full",
+              isSearchRoute ? "max-w-6xl" : "max-w-3xl"
+            )}
+          >
             <Outlet />
           </main>
         </div>

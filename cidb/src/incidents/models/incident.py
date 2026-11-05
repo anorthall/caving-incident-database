@@ -1,6 +1,8 @@
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.db import models
+from django.db.models import Case, Q, SmallIntegerField, Value, When
+from django.db.models.functions import Cast, Substr
 from django_stubs_ext.db.models import TypedModelMeta
 
 from cidb.src.core.imprecise_date import ImpreciseDateField
@@ -123,12 +125,26 @@ class Incident(TimestampModel):
 
     search_vector = SearchVectorField(null=True, blank=True)
 
+    date_year = models.GeneratedField(
+        expression=Case(
+            When(
+                Q(date__regex=r"^[0-9]{4}"),
+                then=Cast(Substr("date", 1, 4), SmallIntegerField()),
+            ),
+            default=Value(None),
+            output_field=SmallIntegerField(null=True),
+        ),
+        output_field=SmallIntegerField(null=True),
+        db_persist=True,
+    )
+
     class Meta(TypedModelMeta):
         indexes = [
             GinIndex(fields=["search_vector"]),
             models.Index(fields=["view_count"], name="incidents_incident_view_count"),
             models.Index(fields=["origin"], name="incidents_incident_origin"),
             models.Index(fields=["date"], name="incidents_incident_date"),
+            models.Index(fields=["date_year"], name="incidents_incident_date_year"),
         ]
 
     def __str__(self) -> str:

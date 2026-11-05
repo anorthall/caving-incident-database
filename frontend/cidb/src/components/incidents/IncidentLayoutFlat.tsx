@@ -1,8 +1,14 @@
+import { Fragment } from "react";
+import { Link } from "react-router-dom";
 import { Calendar, Eye, MapPin, Mountain, Sparkles } from "lucide-react";
 
+import { filterHref } from "@/features/search/filters";
 import { Badge } from "@/components/ui/badge";
 import type { IncidentDetail } from "@/lib/api";
 import { isIncidentViewed } from "@/lib/viewed-incidents";
+
+const PIVOT_LINK_CLASS =
+  "cursor-pointer rounded-sm underline-offset-4 outline-none hover:text-foreground hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50";
 
 interface IncidentLayoutProps {
   incident: IncidentDetail;
@@ -11,6 +17,26 @@ interface IncidentLayoutProps {
 export function IncidentLayoutFlat({ incident }: IncidentLayoutProps) {
   const hasSources = incident.origin_publication || incident.references.length > 0;
   const viewed = isIncidentViewed(incident.id);
+  const location = incident.cave?.location;
+  const locationParts = [
+    location?.region && { key: "region", node: location.region },
+    location?.state && {
+      key: "state",
+      node: (
+        <Link to={filterHref({ states: [location.state] })} className={PIVOT_LINK_CLASS}>
+          {location.state}
+        </Link>
+      ),
+    },
+    location?.country && {
+      key: "country",
+      node: (
+        <Link to={filterHref({ countries: [location.country] })} className={PIVOT_LINK_CLASS}>
+          {location.country}
+        </Link>
+      ),
+    },
+  ].filter((part) => !!part);
 
   return (
     <article>
@@ -40,13 +66,14 @@ export function IncidentLayoutFlat({ incident }: IncidentLayoutProps) {
           {incident.cave?.location && (
             <span className="inline-flex items-center gap-1.5">
               <MapPin className="h-4 w-4" />
-              {[
-                incident.cave.location.region,
-                incident.cave.location.state,
-                incident.cave.location.country,
-              ]
-                .filter(Boolean)
-                .join(", ")}
+              <span>
+                {locationParts.map((part, index) => (
+                  <Fragment key={part.key}>
+                    {index > 0 && ", "}
+                    {part.node}
+                  </Fragment>
+                ))}
+              </span>
             </span>
           )}
         </div>
@@ -54,8 +81,10 @@ export function IncidentLayoutFlat({ incident }: IncidentLayoutProps) {
         {incident.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-4">
             {incident.tags.map((tag) => (
-              <Badge key={tag.id} variant="outline">
-                {tag.name}
+              <Badge key={tag.id} variant="outline" asChild>
+                <Link to={filterHref({ tags: [tag.name] })} className="cursor-pointer">
+                  {tag.name}
+                </Link>
               </Badge>
             ))}
           </div>

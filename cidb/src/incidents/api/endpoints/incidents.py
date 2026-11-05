@@ -1,15 +1,16 @@
-from enum import StrEnum
 from typing import Annotated
 
-from django.contrib.postgres.search import SearchQuery as PgSearchQuery
-from django.contrib.postgres.search import SearchRank, TrigramSimilarity
-from django.db.models import F, Q
-from django.db.models.functions import Ln
+from django.contrib.postgres.search import TrigramSimilarity
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
 from ninja import Query, Router, Schema
 
 from cidb.src.incidents.api.schemas.common import PaginatedResponse
+from cidb.src.incidents.api.schemas.facets import (
+    DecadeFacetSchema,
+    FacetValueSchema,
+    IncidentFacetsSchema,
+)
 from cidb.src.incidents.api.schemas.incident import (
     IncidentDetailSchema,
     IncidentListSchema,
@@ -19,16 +20,10 @@ from cidb.src.incidents.models import (
     SearchClick,
     SearchQuery,
 )
+from cidb.src.incidents.queries.filters import IncidentFilters
+from cidb.src.incidents.queries.incidents import IncidentQuery, SortBy
 
 router = Router()
-
-
-class SortBy(StrEnum):
-    DATE = "date"
-    RELEVANCE = "relevance"
-    POPULARITY = "popularity"
-    TITLE = "title"
-    CAVE_NAME = "cave_name"
 
 
 class SuggestionSchema(Schema):
@@ -56,88 +51,40 @@ class ClickTrackSchema(Schema):
 )
 def search_incidents(
     request: HttpRequest,
-    q: Annotated[str | None, Query(description="Search query")] = None,
+    filters: Query[IncidentFilters],
     sort_by: Annotated[SortBy | None, Query(description="Sort field")] = None,
     sort_order: Annotated[str, Query(description="Sort order", pattern="^(asc|desc)$")] = "desc",
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
 ) -> PaginatedResponse[IncidentListSchema]:
-    queryset = (
-        Incident.objects.only(
-            "id",
-            "title",
-            "date",
-            "summary",
-            "view_count",
-            "cave__id",
-            "cave__name",
-            "cave__location__id",
-            "cave__location__country_text",
-            "cave__location__state_text",
-            "cave__location__region_text",
-            "search_vector",
-        )
-        .select_related(
-            "cave",
-            "cave__location",
-        )
-        .prefetch_related("tags")
-    )
+    if filters.q and page == 1:
+        SearchQuery.record_search(filters.q)
 
-    search_query = None
-    if q:
-        SearchQuery.record_search(q)
-        search_query = PgSearchQuery(q, search_type="websearch")
-        queryset = queryset.filter(
-            Q(search_vector=search_query) | Q(cave__name__icontains=q) | Q(tags__name__icontains=q)
-        ).distinct()
-
-    total = queryset.count()
-    offset = (page - 1) * page_size
-    order_prefix = "" if sort_order == "asc" else "-"
-
-    items: list[IncidentListSchema]
-    if sort_by == SortBy.RELEVANCE and search_query:
-        ranked_qs = queryset.annotate(
-            rank=SearchRank(F("search_vector"), search_query),
-            popularity_boost=Ln(F("view_count") + 2),
-            relevance=F("rank") + F("popularity_boost") * 0.1,
-        ).order_by(f"{order_prefix}relevance", "-date")[offset : offset + page_size]
-        items = [
-            IncidentListSchema.from_incident(i, relevance_score=round(i.relevance, 2))
-            for i in ranked_qs
-        ]
-    elif sort_by == SortBy.POPULARITY:
-        items = [
-            IncidentListSchema.from_incident(i)
-            for i in queryset.order_by(f"{order_prefix}view_count", "-date")[
-                offset : offset + page_size
-            ]
-        ]
-    elif sort_by == SortBy.TITLE:
-        items = [
-            IncidentListSchema.from_incident(i)
-            for i in queryset.order_by(f"{order_prefix}title", "-date")[offset : offset + page_size]
-        ]
-    elif sort_by == SortBy.CAVE_NAME:
-        items = [
-            IncidentListSchema.from_incident(i)
-            for i in queryset.order_by(f"{order_prefix}cave__name", "-date")[
-                offset : offset + page_size
-            ]
-        ]
-    else:
-        items = [
-            IncidentListSchema.from_incident(i)
-            for i in queryset.order_by(f"{order_prefix}date")[offset : offset + page_size]
-        ]
+    result = IncidentQuery.list_page(filters, sort_by, sort_order, page, page_size)
 
     return PaginatedResponse(
-        items=items,
-        total=total,
+        items=[
+            IncidentListSchema.from_incident(i, relevance_score=result.relevance.get(i.pk))
+            for i in result.incidents
+        ],
+        total=result.total,
         page=page,
         page_size=page_size,
-        total_pages=(total + page_size - 1) // page_size if total > 0 else 0,
+        total_pages=(result.total + page_size - 1) // page_size if result.total > 0 else 0,
+    )
+
+
+@router.get("/facets", response=IncidentFacetsSchema)
+def get_facets(request: HttpRequest, filters: Query[IncidentFilters]) -> IncidentFacetsSchema:
+    facets = IncidentQuery.facets(filters)
+    return IncidentFacetsSchema(
+        total=facets.total,
+        countries=[FacetValueSchema(value=f.value, count=f.count) for f in facets.countries],
+        states=[FacetValueSchema(value=f.value, count=f.count) for f in facets.states],
+        tags=[FacetValueSchema(value=f.value, count=f.count) for f in facets.tags],
+        decades=[DecadeFacetSchema(decade=d.decade, count=d.count) for d in facets.decades],
+        year_min=facets.year_min,
+        year_max=facets.year_max,
     )
 
 

@@ -1,9 +1,9 @@
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import type { ColumnVisibilityState } from "@tanstack/react-table";
 import { ChevronUp, Table2 } from "lucide-react";
 import * as React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 import { IncidentCard } from "@/components/incidents/IncidentCard";
@@ -11,7 +11,14 @@ import { IncidentTable } from "@/components/incidents/IncidentTable";
 import { NoResultsMessage } from "@/components/search/NoResultsMessage";
 import { SortControls, type ViewMode } from "@/components/search/SortControls";
 import { Button } from "@/components/ui/button";
-import { searchIncidents, type SortField, type SortOrder, trackSearchClick } from "@/lib/api";
+import { ActiveFilterChips } from "@/features/search/ActiveFilterChips";
+import { BrowseEntryPoints } from "@/features/search/BrowseEntryPoints";
+import { FilterSheet } from "@/features/search/FilterSheet";
+import { FilterSidebar } from "@/features/search/FilterSidebar";
+import { filterHref, serializeFilters } from "@/features/search/filters";
+import { useFacets } from "@/features/search/use-facets";
+import { useIncidentFilters } from "@/features/search/use-incident-filters";
+import { searchIncidents, trackSearchClick } from "@/lib/api";
 import {
   DELETING_SPEED_MS,
   MOBILE_BREAKPOINT,
@@ -29,15 +36,14 @@ import {
 import { useStaffCommands } from "@/hooks/use-staff-commands";
 
 export function SearchPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const urlQuery = searchParams.get("q") || "";
+  const { filters, sortBy, sortOrder, hasFilters, clear, setSort } = useIncidentFilters();
+  const urlQuery = filters.q ?? "";
+  const filtersKey = serializeFilters(filters).toString();
   const [query, setQuery] = useState(urlQuery);
   const [prevUrlQuery, setPrevUrlQuery] = useState(urlQuery);
   const { handleStaffCommand } = useStaffCommands();
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [searchTime, setSearchTime] = useState<number | null>(null);
-  const [sortBy, setSortBy] = useState<SortField>("relevance");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
 
   if (urlQuery !== prevUrlQuery) {
     setPrevUrlQuery(urlQuery);
@@ -82,21 +88,21 @@ export function SearchPage() {
   const searchStartRef = useRef<number>(0);
   const navigate = useNavigate();
   const loadMoreRef = useRef<HTMLDivElement>(null);
-  const hasSearched = urlQuery.length > 0;
+  const hasSearched = urlQuery.length > 0 || hasFilters;
 
   // Track search start time and scroll to top on new search
   useEffect(() => {
-    if (urlQuery) {
+    if (filtersKey) {
       searchStartRef.current = performance.now();
       window.scrollTo(0, 0);
     }
-  }, [urlQuery]);
+  }, [filtersKey]);
 
   const { data, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
-    queryKey: ["incidents", urlQuery, sortBy, sortOrder],
+    queryKey: ["incidents", filters, sortBy, sortOrder],
     queryFn: ({ pageParam = 1 }) =>
       searchIncidents({
-        q: urlQuery || undefined,
+        ...filters,
         sort_by: sortBy,
         sort_order: sortOrder,
         page: pageParam,
@@ -107,11 +113,7 @@ export function SearchPage() {
     enabled: hasSearched,
   });
 
-  const { data: countData } = useQuery({
-    queryKey: ["incidents-count"],
-    queryFn: () => searchIncidents({ page: 1, page_size: 1 }),
-    enabled: !hasSearched,
-  });
+  const { data: facets } = useFacets(filters);
 
   useEffect(() => {
     if (data?.pages[0] && searchStartRef.current > 0 && searchTime === null) {
@@ -205,10 +207,10 @@ export function SearchPage() {
           setQuery("");
           return;
         }
-        setSearchParams({ q: query.trim() });
+        navigate(filterHref({ q: query.trim() }));
       }
     },
-    [query, setSearchParams, handleStaffCommand]
+    [query, navigate, handleStaffCommand]
   );
 
   const handleIncidentClick = useCallback(
@@ -223,7 +225,7 @@ export function SearchPage() {
 
   const allItems = data?.pages.flatMap((page) => page.items) ?? [];
   const searchTotal = data?.pages[0]?.total ?? 0;
-  const totalCount = countData?.total ?? 0;
+  const totalCount = facets?.total ?? 0;
 
   const [exampleQueries] = useState(() =>
     [
@@ -301,9 +303,11 @@ export function SearchPage() {
 
   if (!hasSearched) {
     return (
-      <div className="flex flex-col items-center pt-[15vh]">
+      <div className="flex flex-col items-center pt-[8vh] sm:pt-[15vh]">
         <div className="text-center mb-12">
-          <h1 className="text-6xl font-semibold tracking-tight">Caving Incident Database</h1>
+          <h1 className="text-4xl sm:text-6xl font-semibold tracking-tight">
+            Caving Incident Database
+          </h1>
           <p
             className={`mt-4 text-2xl font-light text-muted-foreground transition-opacity duration-700 ease-out ${totalCount > 0 ? "opacity-100" : "opacity-0"}`}
           >
@@ -330,70 +334,98 @@ export function SearchPage() {
             />
           </div>
         </form>
+
+        <BrowseEntryPoints />
       </div>
     );
   }
 
-  const maxWidthClass = viewMode === "table" ? "max-w-[1400px]" : "max-w-3xl";
+  const isTable = viewMode === "table";
 
   return (
-    <div className={`${maxWidthClass} mx-auto w-full`}>
-      {error && <p className="text-destructive">Error loading incidents. Please try again.</p>}
-
-      {data && allItems.length > 0 && (
-        <SortControls
-          sortBy={sortBy}
-          sortOrder={sortOrder}
-          viewMode={viewMode}
-          hasQuery={!!urlQuery}
-          onSortByChange={setSortBy}
-          onSortOrderChange={setSortOrder}
-          onViewModeChange={handleViewModeChange}
-          columnVisibility={columnVisibility}
-          onColumnVisibilityChange={setColumnVisibility}
-          resultCount={searchTotal}
-          searchTime={searchTime}
-        />
-      )}
-
-      {data && allItems.length === 0 && <NoResultsMessage />}
-
-      {data && allItems.length > 0 && (
-        <>
-          {viewMode === "cards" ? (
-            <div>
-              {allItems.map((incident, index) => (
-                <IncidentCard
-                  key={incident.id}
-                  incident={incident}
-                  onClick={() => handleIncidentClick(incident.id, index + 1)}
-                />
-              ))}
-            </div>
-          ) : (
-            <IncidentTable
-              incidents={allItems}
-              onRowClick={(id, index) => handleIncidentClick(id, index + 1)}
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              onSortChange={(field) => {
-                if (sortBy === field) {
-                  setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-                } else {
-                  setSortBy(field);
-                  setSortOrder("desc");
-                }
-              }}
-              columnVisibility={columnVisibility}
-              onColumnVisibilityChange={setColumnVisibility}
-            />
+    <>
+      <div className="@container w-full">
+        <div className="flex justify-center gap-8">
+          {!isTable && (
+            <aside
+              aria-label="Filters"
+              className="sticky top-20 hidden max-h-[calc(100vh-6rem)] w-56 shrink-0 self-start overflow-y-auto @4xl:block"
+            >
+              <FilterSidebar />
+            </aside>
           )}
 
-          <div ref={loadMoreRef} className="py-8 text-center">
-            {isFetchingNextPage && <p className="text-muted-foreground">Loading more...</p>}
+          <div className={`min-w-0 flex-1 ${isTable ? "max-w-[1400px]" : "max-w-3xl"}`}>
+            {error && (
+              <p className="text-destructive">Error loading incidents. Please try again.</p>
+            )}
+
+            <div className="mb-4 flex flex-col items-start gap-3">
+              <FilterSheet
+                resultCount={searchTotal}
+                className={`max-sm:h-10 ${isTable ? "" : "@4xl:hidden"}`}
+              />
+              <ActiveFilterChips />
+            </div>
+
+            {data && allItems.length > 0 && (
+              <SortControls
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                viewMode={viewMode}
+                hasQuery={!!urlQuery}
+                onSortByChange={(field) => setSort(field, sortOrder)}
+                onSortOrderChange={(order) => setSort(sortBy, order)}
+                onViewModeChange={handleViewModeChange}
+                columnVisibility={columnVisibility}
+                onColumnVisibilityChange={setColumnVisibility}
+                resultCount={searchTotal}
+                searchTime={searchTime}
+              />
+            )}
+
+            {data && allItems.length === 0 && (
+              <NoResultsMessage onClearFilters={hasFilters ? () => clear(true) : undefined} />
+            )}
+
+            {data && allItems.length > 0 && (
+              <>
+                {viewMode === "cards" ? (
+                  <div>
+                    {allItems.map((incident, index) => (
+                      <IncidentCard
+                        key={incident.id}
+                        incident={incident}
+                        onClick={() => handleIncidentClick(incident.id, index + 1)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <IncidentTable
+                    incidents={allItems}
+                    onRowClick={(id, index) => handleIncidentClick(id, index + 1)}
+                    sortBy={sortBy}
+                    sortOrder={sortOrder}
+                    onSortChange={(field) => {
+                      if (sortBy === field) {
+                        setSort(field, sortOrder === "asc" ? "desc" : "asc");
+                      } else {
+                        setSort(field, "desc");
+                      }
+                    }}
+                    columnVisibility={columnVisibility}
+                    onColumnVisibilityChange={setColumnVisibility}
+                  />
+                )}
+
+                <div ref={loadMoreRef} className="py-8 text-center">
+                  {isFetchingNextPage && <p className="text-muted-foreground">Loading more...</p>}
+                </div>
+              </>
+            )}
           </div>
-        </>
-      )}
+        </div>
+      </div>
 
       <Button
         onClick={scrollToTop}
@@ -402,6 +434,6 @@ export function SearchPage() {
       >
         <ChevronUp className="h-5 w-5" />
       </Button>
-    </div>
+    </>
   );
 }
