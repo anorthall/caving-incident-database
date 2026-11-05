@@ -100,7 +100,7 @@ if ! mountpoint -q "${APP_DIR}/data"; then
   exit 1
 fi
 
-dc pull
+dc pull --quiet
 dc up -d postgres
 for _ in $(seq 1 30); do
   if dc exec -T postgres pg_isready -U cidb -d cidb >/dev/null 2>&1; then
