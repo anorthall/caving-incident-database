@@ -10,7 +10,7 @@ import {
   X,
 } from "lucide-react";
 import * as React from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar,
@@ -78,7 +78,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     getViewedIncidents()
   );
 
-  const seenIncidentIds = useRef<Set<number>>(new Set(getViewedIncidents().map((i) => i.id)));
+  const [seenIncidentIds, setSeenIncidentIds] = useState<ReadonlySet<number>>(
+    () => new Set(viewedIncidents.map((i) => i.id))
+  );
+
+  const markIncidentSeen = useCallback((id: number) => {
+    setSeenIncidentIds((prev) => (prev.has(id) ? prev : new Set(prev).add(id)));
+  }, []);
 
   const [isLoadingRandom, setIsLoadingRandom] = useState(false);
 
@@ -304,14 +310,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarGroupContent className="pt-1">
               <SidebarMenu>
                 {viewedIncidents.slice(0, 5).map((incident) => {
-                  const isNew = !seenIncidentIds.current.has(incident.id);
-                  if (isNew) {
-                    seenIncidentIds.current.add(incident.id);
-                  }
+                  const isNew = !seenIncidentIds.has(incident.id);
                   return (
                     <motion.div
                       key={incident.id}
                       initial={isNew ? { opacity: 0 } : false}
+                      onAnimationStart={isNew ? () => markIncidentSeen(incident.id) : undefined}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.25, ease: "easeOut" }}
                     >

@@ -21,9 +21,6 @@ export default defineConfig([
     },
     rules: {
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
-      "react-hooks/purity": "warn",
-      "react-hooks/refs": "warn",
-      "react-hooks/set-state-in-effect": "warn",
     },
   },
 ]);

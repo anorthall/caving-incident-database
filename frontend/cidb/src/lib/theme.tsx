@@ -1,4 +1,11 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 
 type Theme = "dark" | "light" | "system";
 
@@ -11,20 +18,16 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-function applyTheme(theme: Theme) {
-  if (theme === "system") {
-    const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    document.documentElement.classList.toggle("dark", systemDark);
-  } else {
-    document.documentElement.classList.toggle("dark", theme === "dark");
-  }
+const DARK_SCHEME_QUERY = "(prefers-color-scheme: dark)";
+
+function subscribeToSystemTheme(onChange: () => void) {
+  const mediaQuery = window.matchMedia(DARK_SCHEME_QUERY);
+  mediaQuery.addEventListener("change", onChange);
+  return () => mediaQuery.removeEventListener("change", onChange);
 }
 
-function getIsDarkMode(theme: Theme): boolean {
-  if (theme === "system") {
-    return window.matchMedia("(prefers-color-scheme: dark)").matches;
-  }
-  return theme === "dark";
+function getSystemPrefersDark() {
+  return window.matchMedia(DARK_SCHEME_QUERY).matches;
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -35,25 +38,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return "dark";
   });
 
-  const [isDarkMode, setIsDarkMode] = useState(() => getIsDarkMode(theme));
+  const systemPrefersDark = useSyncExternalStore(subscribeToSystemTheme, getSystemPrefersDark);
+  const isDarkMode = theme === "system" ? systemPrefersDark : theme === "dark";
 
   useEffect(() => {
-    applyTheme(theme);
-    setIsDarkMode(getIsDarkMode(theme));
-  }, [theme]);
-
-  useEffect(() => {
-    if (theme !== "system") return;
-
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleChange = () => {
-      applyTheme("system");
-      setIsDarkMode(mediaQuery.matches);
-    };
-
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
-  }, [theme]);
+    document.documentElement.classList.toggle("dark", isDarkMode);
+  }, [isDarkMode]);
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);

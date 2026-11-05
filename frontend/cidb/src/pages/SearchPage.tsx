@@ -32,11 +32,20 @@ export function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlQuery = searchParams.get("q") || "";
   const [query, setQuery] = useState(urlQuery);
+  const [prevUrlQuery, setPrevUrlQuery] = useState(urlQuery);
   const { handleStaffCommand } = useStaffCommands();
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [searchTime, setSearchTime] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<SortField>("relevance");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+
+  if (urlQuery !== prevUrlQuery) {
+    setPrevUrlQuery(urlQuery);
+    setQuery(urlQuery);
+    if (urlQuery) {
+      setSearchTime(null);
+    }
+  }
 
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     if (typeof window !== "undefined") {
@@ -79,7 +88,6 @@ export function SearchPage() {
   useEffect(() => {
     if (urlQuery) {
       searchStartRef.current = performance.now();
-      setSearchTime(null);
       window.scrollTo(0, 0);
     }
   }, [urlQuery]);
@@ -104,10 +112,6 @@ export function SearchPage() {
     queryFn: () => searchIncidents({ page: 1, page_size: 1 }),
     enabled: !hasSearched,
   });
-
-  useEffect(() => {
-    setQuery(urlQuery);
-  }, [urlQuery]);
 
   useEffect(() => {
     if (data?.pages[0] && searchStartRef.current > 0 && searchTime === null) {
@@ -221,7 +225,7 @@ export function SearchPage() {
   const searchTotal = data?.pages[0]?.total ?? 0;
   const totalCount = countData?.total ?? 0;
 
-  const exampleQueriesRef = useRef(
+  const [exampleQueries] = useState(() =>
     [
       "rope failure",
       "flooding incidents",
@@ -263,7 +267,6 @@ export function SearchPage() {
       return;
     }
 
-    const exampleQueries = exampleQueriesRef.current;
     const currentQuery = exampleQueries[placeholderIndex];
     let charIndex = 0;
 
@@ -294,7 +297,7 @@ export function SearchPage() {
     }
 
     return clearAnimationTimeout;
-  }, [placeholderIndex, isTyping, query]);
+  }, [exampleQueries, placeholderIndex, isTyping, query]);
 
   if (!hasSearched) {
     return (
