@@ -21,6 +21,11 @@ class IncidentFacetsSchema(Schema):
     year_max: int | None
 
 
+class StatRowSchema(Schema):
+    label: str
+    count: int
+
+
 class BrowseValueSchema(Schema):
     value: str
     count: int

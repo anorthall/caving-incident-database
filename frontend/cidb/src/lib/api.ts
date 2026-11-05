@@ -258,6 +258,32 @@ export async function getFacets(filters: IncidentFilters): Promise<IncidentFacet
   return response.json();
 }
 
+export type StatsGroupBy =
+  "year" | "decade" | "tag" | "state" | "country" | "injury" | "age_bucket";
+
+export interface StatRow {
+  label: string;
+  count: number;
+}
+
+export async function getStats(
+  groupBy: StatsGroupBy,
+  filters: IncidentFilters
+): Promise<StatRow[]> {
+  const searchParams = new URLSearchParams({ group_by: groupBy });
+  appendFilterParams(searchParams, filters);
+
+  const response = await fetchWithRetry(
+    `${API_BASE_URL}/incidents/stats?${searchParams.toString()}`
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch stats: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
 export async function getIncident(id: number): Promise<IncidentDetail> {
   const response = await fetchWithRetry(`${API_BASE_URL}/incidents/${id}`);
 
