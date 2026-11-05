@@ -49,7 +49,7 @@ export default function IncidentMap({ points }: { points: MapPoint[] }) {
       center={WORLD_CENTER}
       zoom={WORLD_ZOOM}
       worldCopyJump
-      className="h-full w-full bg-muted [&_.leaflet-popup-content-wrapper]:bg-popover [&_.leaflet-popup-content-wrapper]:text-popover-foreground [&_.leaflet-popup-tip]:bg-popover"
+      className="h-full w-full bg-muted [&_.leaflet-popup-content-wrapper]:bg-popover! [&_.leaflet-popup-content-wrapper]:text-popover-foreground! [&_.leaflet-popup-tip]:bg-popover!"
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -60,12 +60,12 @@ export default function IncidentMap({ points }: { points: MapPoint[] }) {
         {points.map((point) => (
           <Marker key={point.id} position={[point.latitude, point.longitude]} icon={markerIcon}>
             <Popup>
-              <div className="flex min-w-40 flex-col gap-1">
+              <div className="flex min-w-40 flex-col gap-1 font-sans! text-sm!">
                 <span className="font-medium">{point.title}</span>
                 {point.year !== null && <span className="text-muted-foreground">{point.year}</span>}
                 <Link
                   to={`/incidents/${point.id}`}
-                  className="cursor-pointer text-primary underline underline-offset-4"
+                  className="inline-flex min-h-10 cursor-pointer items-center text-primary! underline underline-offset-4"
                 >
                   View incident
                 </Link>
