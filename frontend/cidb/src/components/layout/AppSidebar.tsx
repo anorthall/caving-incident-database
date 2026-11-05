@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   ClipboardList,
@@ -23,12 +24,13 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar.tsx";
-import { getRandomIncidentId } from "@/lib/api.ts";
+import { getPendingFeedbackCount, getRandomIncidentId } from "@/lib/api.ts";
 import { useAuth } from "@/lib/auth-context.tsx";
 import useFeedback from "@/lib/feedback-context.tsx";
 import { useTheme } from "@/lib/theme.tsx";
@@ -47,6 +49,17 @@ import {
   HISTORY_ENABLED_STORAGE_KEY,
   navItems,
 } from "@/constants.ts";
+
+function PendingFeedbackBadge() {
+  const { data: count } = useQuery({
+    queryKey: ["pending-feedback-count"],
+    queryFn: getPendingFeedbackCount,
+  });
+
+  if (!count) return null;
+
+  return <SidebarMenuBadge aria-label={`${count} pending feedback`}>{count}</SidebarMenuBadge>;
+}
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation();
@@ -267,6 +280,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       <span>Feedback</span>
                     </Link>
                   </SidebarMenuButton>
+                  <PendingFeedbackBadge />
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton

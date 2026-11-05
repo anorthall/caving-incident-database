@@ -3,6 +3,7 @@ from ninja import Router
 
 from cidb.src.core.models.user import ACAUser
 from cidb.src.incidents.api.endpoints.feedback import router as feedback_router
+from cidb.src.incidents.api.endpoints.revisions import router as revisions_router
 from cidb.src.incidents.api.schemas.data_quality import DataQualityCheck
 from cidb.src.incidents.services.data_quality import run_checks
 
@@ -19,6 +20,7 @@ class EditorAuth:
 
 router = Router(auth=EditorAuth())
 router.add_router("/feedback", feedback_router, tags=["feedback"])
+router.add_router("", revisions_router, tags=["staff"])
 
 
 @router.get("/data-quality", response=list[DataQualityCheck])
