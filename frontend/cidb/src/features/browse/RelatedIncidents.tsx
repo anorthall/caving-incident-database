@@ -31,18 +31,18 @@ export function RelatedIncidents({ incidentId }: { incidentId: number }) {
               <span className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                 {incident.date && (
                   <span className="inline-flex items-center gap-1.5">
-                    <Calendar className="h-4 w-4" />
+                    <Calendar className="h-4 w-4 shrink-0" />
                     {incident.date.display}
                   </span>
                 )}
                 {incident.cave_name && (
-                  <span className="inline-flex items-center gap-1.5">
-                    <Mountain className="h-4 w-4" />
-                    {incident.cave_name}
+                  <span className="inline-flex min-w-0 max-w-full items-center gap-1.5">
+                    <Mountain className="h-4 w-4 shrink-0" />
+                    <span className="min-w-0 truncate">{incident.cave_name}</span>
                   </span>
                 )}
                 <span className="inline-flex items-center gap-1.5">
-                  <Eye className="h-4 w-4" />
+                  <Eye className="h-4 w-4 shrink-0" />
                   {incident.view_count.toLocaleString()}
                 </span>
                 {incident.tags.slice(0, RELATED_TAG_LIMIT).map((tag) => (

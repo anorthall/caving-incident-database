@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, Search } from "lucide-react";
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 
 import {
   Breadcrumb,
@@ -113,6 +113,10 @@ export function BrowsePage() {
     ? BROWSE_DIMENSIONS.find((item) => item.dimension === dimension)
     : undefined;
   usePageTitle(active ? `Browse by ${active.label.toLowerCase()}` : "Browse");
+
+  if (dimension !== undefined && !active) {
+    return <Navigate to="/browse" replace />;
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-6">
