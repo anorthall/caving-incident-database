@@ -6,6 +6,8 @@ import { IncidentLayoutFlat } from "@/components/incidents/IncidentLayoutFlat";
 import { EditIncidentSheet } from "@/components/staff/EditIncidentSheet";
 import { RevisionHistory } from "@/components/staff/RevisionHistory";
 import { Button } from "@/components/ui/button";
+import { RelatedIncidents } from "@/features/browse/RelatedIncidents";
+import { usePageTitle } from "@/hooks/use-page-title";
 import { getIncident } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { markIncidentViewed } from "@/lib/viewed-incidents";
@@ -25,6 +27,8 @@ export function IncidentPage() {
     queryFn: () => getIncident(incidentId),
     enabled: !isNaN(incidentId),
   });
+
+  usePageTitle(incident?.title);
 
   useEffect(() => {
     if (incident) {
@@ -59,6 +63,7 @@ export function IncidentPage() {
         </div>
       )}
       <IncidentLayoutFlat incident={incident} />
+      <RelatedIncidents incidentId={incident.id} />
       {canEdit && <RevisionHistory incidentId={incident.id} />}
     </>
   );

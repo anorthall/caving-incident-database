@@ -19,3 +19,9 @@ class IncidentFacetsSchema(Schema):
     decades: list[DecadeFacetSchema]
     year_min: int | None
     year_max: int | None
+
+
+class BrowseValueSchema(Schema):
+    value: str
+    count: int
+    id: int | None = None

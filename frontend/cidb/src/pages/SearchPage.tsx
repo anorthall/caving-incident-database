@@ -11,6 +11,7 @@ import { IncidentTable } from "@/components/incidents/IncidentTable";
 import { NoResultsMessage } from "@/components/search/NoResultsMessage";
 import { SortControls, type ViewMode } from "@/components/search/SortControls";
 import { Button } from "@/components/ui/button";
+import { DownloadMenu } from "@/features/search/DownloadMenu";
 import { ActiveFilterChips } from "@/features/search/ActiveFilterChips";
 import { BrowseEntryPoints } from "@/features/search/BrowseEntryPoints";
 import { FilterSheet } from "@/features/search/FilterSheet";
@@ -381,6 +382,7 @@ export function SearchPage() {
                 onColumnVisibilityChange={setColumnVisibility}
                 resultCount={searchTotal}
                 searchTime={searchTime}
+                actions={<DownloadMenu filters={filters} total={searchTotal} />}
               />
             )}
 
