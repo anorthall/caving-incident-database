@@ -1,9 +1,10 @@
 from typing import Annotated
 
 from django.contrib.postgres.search import TrigramSimilarity
-from django.http import HttpRequest
+from django.http import HttpRequest, StreamingHttpResponse
 from django.shortcuts import get_object_or_404
 from ninja import Query, Router, Schema
+from ninja.errors import HttpError
 
 from cidb.src.incidents.api.schemas.common import PaginatedResponse
 from cidb.src.incidents.api.schemas.facets import (
@@ -15,6 +16,7 @@ from cidb.src.incidents.api.schemas.incident import (
     IncidentDetailSchema,
     IncidentListSchema,
 )
+from cidb.src.incidents.exports import ExportFormat, IncidentExportRow, stream_export
 from cidb.src.incidents.models import (
     Incident,
     SearchClick,
@@ -24,6 +26,9 @@ from cidb.src.incidents.queries.filters import IncidentFilters
 from cidb.src.incidents.queries.incidents import IncidentQuery, SortBy
 
 router = Router()
+
+MAX_EXPORT_ROWS = 5000
+EXPORT_CONTENT_TYPES = {ExportFormat.CSV: "text/csv", ExportFormat.JSON: "application/json"}
 
 
 class SuggestionSchema(Schema):
@@ -72,6 +77,33 @@ def search_incidents(
         page_size=page_size,
         total_pages=(result.total + page_size - 1) // page_size if result.total > 0 else 0,
     )
+
+
+@router.get("/export")
+def export_incidents(
+    request: HttpRequest,
+    filters: Query[IncidentFilters],
+    export_format: Annotated[ExportFormat, Query(alias="format", description="Export format")],
+) -> StreamingHttpResponse:
+    queryset = IncidentQuery.apply(
+        Incident.objects.select_related("cave", "cave__location").prefetch_related("tags"),
+        filters,
+    )
+    total = queryset.count()
+    if total > MAX_EXPORT_ROWS:
+        raise HttpError(
+            400,
+            f"Too many results to export: {total} (maximum {MAX_EXPORT_ROWS}). Narrow the filters.",
+        )
+    rows = (
+        IncidentExportRow.from_incident(i)
+        for i in queryset.order_by("date", "id").iterator(chunk_size=500)
+    )
+    response = StreamingHttpResponse(
+        stream_export(rows, export_format), content_type=EXPORT_CONTENT_TYPES[export_format]
+    )
+    response["Content-Disposition"] = f'attachment; filename="cidb-incidents.{export_format.value}"'
+    return response
 
 
 @router.get("/facets", response=IncidentFacetsSchema)
