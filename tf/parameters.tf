@@ -22,7 +22,7 @@ locals {
   string_parameters = {
     ACME_EMAIL              = "placeholder"
     API_DOMAIN              = var.api_domain_name
-    DJANGO_ALLOWED_HOSTS    = "${var.api_domain_name},${var.frontend_domain_name}"
+    DJANGO_ALLOWED_HOSTS    = "localhost,${var.api_domain_name},${var.frontend_domain_name}"
     CSRF_TRUSTED_ORIGINS    = "https://${var.frontend_domain_name},https://${var.api_domain_name}"
     CORS_ALLOWED_ORIGINS    = "https://${var.frontend_domain_name}"
     AWS_STORAGE_BUCKET_NAME = module.cdn_bucket.s3_bucket_id
