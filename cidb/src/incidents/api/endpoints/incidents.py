@@ -22,6 +22,7 @@ from cidb.src.incidents.models import (
     SearchClick,
     SearchQuery,
 )
+from cidb.src.incidents.queries.browse import BrowseQuery
 from cidb.src.incidents.queries.filters import IncidentFilters
 from cidb.src.incidents.queries.incidents import IncidentQuery, SortBy
 
@@ -180,6 +181,15 @@ def track_click(request: HttpRequest, payload: ClickTrackRequest) -> ClickTrackS
         query=payload.query, incident_id=payload.incident_id, position=payload.position
     )
     return ClickTrackSchema(success=True)
+
+
+@router.get("/{incident_id}/related", response=list[IncidentListSchema])
+def get_related_incidents(request: HttpRequest, incident_id: int) -> list[IncidentListSchema]:
+    incident = get_object_or_404(
+        Incident.objects.select_related("cave", "cave__location").prefetch_related("tags"),
+        pk=incident_id,
+    )
+    return [IncidentListSchema.from_incident(i) for i in BrowseQuery.related(incident)]
 
 
 @router.get("/{incident_id}", response=IncidentDetailSchema)
