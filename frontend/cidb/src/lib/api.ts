@@ -491,3 +491,58 @@ export async function resolveFeedback(
 
   return response.json();
 }
+
+export interface IncidentUpdate {
+  title?: string;
+  summary?: string;
+  date?: string;
+  tags?: string[];
+  analysis?: string;
+}
+
+export interface FieldChange {
+  before: string | string[];
+  after: string | string[];
+}
+
+export interface IncidentRevision {
+  id: number;
+  editor_name: string | null;
+  created_at: string;
+  changes: Record<string, FieldChange>;
+}
+
+export async function updateIncident(id: number, update: IncidentUpdate): Promise<IncidentDetail> {
+  const response = await fetchWithRetry(`${API_BASE_URL}/staff/incidents/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(update),
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.detail ?? `Failed to update incident: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function getIncidentRevisions(id: number): Promise<IncidentRevision[]> {
+  const response = await fetchWithRetry(`${API_BASE_URL}/staff/incidents/${id}/revisions`);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch revisions: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function getPendingFeedbackCount(): Promise<number> {
+  const response = await fetchWithRetry(`${API_BASE_URL}/staff/feedback/pending-count/`);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch pending count: ${response.statusText}`);
+  }
+
+  return (await response.json()).count;
+}

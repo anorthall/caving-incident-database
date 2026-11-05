@@ -22,6 +22,7 @@ from cidb.src.incidents.models.publication import (
     PublicationPage,
 )
 from cidb.src.incidents.models.report import ContentReport, ReportReason, ReportStatus
+from cidb.src.incidents.models.revision import IncidentRevision
 from cidb.src.incidents.models.search_click import SearchClick
 from cidb.src.incidents.models.search_query import SearchQuery
 from cidb.src.incidents.models.source import SourceExtract, SourceFile
@@ -44,6 +45,7 @@ __all__ = [
     "IncidentEmbedding",
     "IncidentPerson",
     "IncidentReference",
+    "IncidentRevision",
     "Injury",
     "Location",
     "OperationStatus",

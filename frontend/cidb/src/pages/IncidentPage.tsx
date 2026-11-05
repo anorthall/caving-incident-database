@@ -3,13 +3,18 @@ import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import { IncidentLayoutFlat } from "@/components/incidents/IncidentLayoutFlat";
+import { EditIncidentSheet } from "@/components/staff/EditIncidentSheet";
+import { RevisionHistory } from "@/components/staff/RevisionHistory";
 import { Button } from "@/components/ui/button";
 import { getIncident } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 import { markIncidentViewed } from "@/lib/viewed-incidents";
 
 export function IncidentPage() {
   const { id } = useParams<{ id: string }>();
   const incidentId = parseInt(id!, 10);
+  const { user } = useAuth();
+  const canEdit = !!user && (user.is_editor || user.is_staff);
 
   const {
     data: incident,
@@ -46,5 +51,15 @@ export function IncidentPage() {
     );
   }
 
-  return <IncidentLayoutFlat incident={incident} />;
+  return (
+    <>
+      {canEdit && (
+        <div className="mb-4 flex justify-end">
+          <EditIncidentSheet key={incident.updated_at} incident={incident} />
+        </div>
+      )}
+      <IncidentLayoutFlat incident={incident} />
+      {canEdit && <RevisionHistory incidentId={incident.id} />}
+    </>
+  );
 }
