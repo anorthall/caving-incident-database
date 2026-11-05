@@ -1,4 +1,5 @@
 import type { ColumnVisibilityState } from "@tanstack/react-table";
+import type { ReactNode } from "react";
 import { ArrowDownAZ, ArrowUpAZ, List, Settings2, Table2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,6 +38,7 @@ interface SortControlsProps {
   onColumnVisibilityChange?: (visibility: ColumnVisibilityState) => void;
   resultCount?: number;
   searchTime?: number | null;
+  actions?: ReactNode;
 }
 
 export function SortControls({
@@ -51,6 +53,7 @@ export function SortControls({
   onColumnVisibilityChange,
   resultCount,
   searchTime,
+  actions,
 }: SortControlsProps) {
   const isColumnVisible = (columnId: string) => columnVisibility[columnId] !== false;
 
@@ -106,6 +109,8 @@ export function SortControls({
             </>
           )}
         </div>
+
+        {actions}
 
         {viewMode === "cards" ? (
           <div className="hidden sm:flex items-center gap-1">
