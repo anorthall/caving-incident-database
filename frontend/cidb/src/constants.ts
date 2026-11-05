@@ -26,11 +26,6 @@ export const CIDBLogoForDarkMode = "/img/cidb-dark-transparent-md.png";
 export const CIDBIconForDarkMode = "/img/cidb-dark-icon.png";
 export const CIDBIconForLightMode = "/img/cidb-light-icon.png";
 
-export const DiscordIconForLightMode = "/img/discord-icon-light.png";
-export const DiscordIconForDarkMode = "/img/discord-icon-dark.png";
-
-const DISCORD_URL = "https://discord.gg/uMN7ndXQ";
-
 export const EXPORT_MAX_ROWS = 5000;
 
 export const navItems: { title: string; url: string; icon: typeof MessageSquare }[] = [
@@ -49,11 +44,5 @@ export const cidbItems = [
     title: "Privacy",
     url: "/privacy",
     icon: Shield,
-  },
-  {
-    title: "Discord",
-    url: DISCORD_URL,
-    imageLight: DiscordIconForLightMode,
-    imageDark: DiscordIconForDarkMode,
   },
 ];
