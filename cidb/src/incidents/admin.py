@@ -106,7 +106,9 @@ class TagAdmin(ModelAdmin[Tag]):
     def incident_count(self, obj: Tag) -> int:
         return int(getattr(obj, "_incident_count", 0))
 
-    @admin.action(description="Merge selected tags into the oldest selected tag")
+    @admin.action(
+        description="Merge selected tags into the oldest selected tag", permissions=["delete"]
+    )
     def merge_tags(self, request: HttpRequest, queryset: QuerySet[Tag]) -> None:
         tags = list(queryset.order_by("id"))
         if len(tags) < 2:
@@ -274,7 +276,7 @@ class IncidentAdmin(ModelAdmin[Incident]):
         ("Metadata", {"fields": ("view_count", "search_vector", "created_at", "updated_at")}),
     )
 
-    @admin.action(description="Mark selected incidents for review")
+    @admin.action(description="Mark selected incidents for review", permissions=["change"])
     def mark_for_review(self, request: HttpRequest, queryset: QuerySet[Incident]) -> None:
         tag, _ = Tag.objects.get_or_create(name=REVIEW_TAG)
         for incident in queryset:
