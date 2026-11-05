@@ -1,22 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  type ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getStats, type IncidentFilters } from "@/lib/api";
 
 import type { StatsChartConfig } from "./stats-config";
 
-const ROW_HEIGHT = 28;
-const MIN_HEIGHT = 200;
-const LABEL_WIDTH = 110;
+const ROW_CLASS =
+  "grid min-h-11 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 px-2 py-1.5";
 
 export function StatsChart({
   chart,
@@ -25,23 +17,14 @@ export function StatsChart({
   chart: StatsChartConfig;
   filters: IncidentFilters;
 }) {
-  const navigate = useNavigate();
   const { data, isLoading, isError } = useQuery({
     queryKey: ["stats", chart.groupBy, filters],
     queryFn: () => getStats(chart.groupBy, filters),
   });
 
-  const config: ChartConfig = { count: { label: "Incidents", color: chart.color } };
-  const rows = (data ?? []).map((row) => ({
-    ...row,
-    name: chart.formatLabel(row.label),
-  }));
+  const rows = data ?? [];
+  const max = Math.max(1, ...rows.map((row) => row.count));
   const href = chart.href;
-  const height = chart.horizontal ? Math.max(MIN_HEIGHT, rows.length * ROW_HEIGHT + 24) : 240;
-
-  const openRow = (label: string) => {
-    if (href) navigate(href(filters, label));
-  };
 
   return (
     <Card data-testid={`stats-${chart.groupBy}`} className="min-w-0 gap-4">
@@ -57,71 +40,38 @@ export function StatsChart({
         ) : rows.length === 0 ? (
           <p className="text-muted-foreground text-sm">No data for the current filters.</p>
         ) : (
-          <>
-            <ChartContainer
-              config={config}
-              className="aspect-auto w-full"
-              style={{ height }}
-              role="img"
-              aria-label={chart.title}
-            >
-              <BarChart
-                data={rows}
-                layout={chart.horizontal ? "vertical" : "horizontal"}
-                margin={{ left: 0, right: 8, top: 8, bottom: 0 }}
-              >
-                <CartesianGrid horizontal={!chart.horizontal} vertical={chart.horizontal} />
-                {chart.horizontal ? (
-                  <>
-                    <YAxis
-                      dataKey="name"
-                      type="category"
-                      width={LABEL_WIDTH}
-                      tickLine={false}
-                      axisLine={false}
-                      interval={0}
-                      tickFormatter={(value: string) =>
-                        value.length > 16 ? `${value.slice(0, 15)}…` : value
-                      }
+          <ul className="divide-y">
+            {rows.map((row) => {
+              const content = (
+                <>
+                  <span className="min-w-0 text-sm break-words">
+                    {chart.formatLabel(row.label)}
+                  </span>
+                  <span className="text-sm font-medium tabular-nums">{row.count}</span>
+                  <span className="bg-muted col-span-2 h-2 overflow-hidden rounded-full">
+                    <span
+                      className="bg-primary block h-full rounded-full"
+                      style={{ width: `${(row.count / max) * 100}%` }}
                     />
-                    <XAxis type="number" hide />
-                  </>
-                ) : (
-                  <>
-                    <XAxis
-                      dataKey="name"
-                      tickLine={false}
-                      axisLine={false}
-                      interval="preserveStartEnd"
-                    />
-                    <YAxis tickLine={false} axisLine={false} width={32} allowDecimals={false} />
-                  </>
-                )}
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar
-                  dataKey="count"
-                  fill="var(--color-count)"
-                  radius={4}
-                  className={href ? "cursor-pointer" : undefined}
-                  onClick={(entry: { payload?: { label?: string } }) => {
-                    const label = entry.payload?.label;
-                    if (label) openRow(label);
-                  }}
-                />
-              </BarChart>
-            </ChartContainer>
-            {href ? (
-              <ul className="sr-only">
-                {rows.map((row) => (
-                  <li key={row.label}>
-                    <a href={href(filters, row.label)}>
-                      {row.name}: {row.count}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </>
+                  </span>
+                </>
+              );
+              return (
+                <li key={row.label}>
+                  {href ? (
+                    <Link
+                      to={href(filters, row.label)}
+                      className={`${ROW_CLASS} hover:bg-accent focus-visible:ring-ring cursor-pointer rounded-md outline-none focus-visible:ring-2`}
+                    >
+                      {content}
+                    </Link>
+                  ) : (
+                    <div className={ROW_CLASS}>{content}</div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
         )}
       </CardContent>
     </Card>

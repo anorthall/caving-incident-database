@@ -11,12 +11,6 @@ const getStats = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/api", () => ({ getStats }));
 
-class ResizeObserverStub {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-}
-
 function renderPage(path: string) {
   const router = createMemoryRouter([{ path: "/stats", element: <StatsPage /> }], {
     initialEntries: [path],
@@ -32,14 +26,13 @@ function renderPage(path: string) {
 
 describe("StatsPage", () => {
   beforeEach(() => {
-    vi.stubGlobal("ResizeObserver", ResizeObserverStub);
     getStats.mockReset();
   });
 
   it("requests every chart with the URL filters", async () => {
     getStats.mockResolvedValue([{ label: "1990", count: 3 }]);
     renderPage("/stats?tags=Rope&year_from=1990");
-    await waitFor(() => expect(screen.getAllByRole("img")).toHaveLength(STATS_CHARTS.length));
+    await waitFor(() => expect(screen.getAllByTestId(/^stats-/)).toHaveLength(STATS_CHARTS.length));
     const groups = getStats.mock.calls.map((call) => call[0]);
     expect(groups.sort()).toEqual(STATS_CHARTS.map((c) => c.groupBy).sort());
     expect(getStats.mock.calls[0][1]).toMatchObject({ tags: ["Rope"], year_from: 1990 });
