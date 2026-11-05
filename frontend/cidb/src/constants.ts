@@ -1,4 +1,4 @@
-import { MessageSquare, Shield } from "lucide-react";
+import { Database, MessageSquare, Shield } from "lucide-react";
 
 export const SEARCH_COUNT_STORAGE_KEY = "cidb-search-count";
 export const HISTORY_STORAGE_KEY = "cidb-search-history";
@@ -31,7 +31,11 @@ export const DiscordIconForDarkMode = "/img/discord-icon-dark.png";
 
 const DISCORD_URL = "https://discord.gg/uMN7ndXQ";
 
-export const navItems: { title: string; url: string; icon: typeof MessageSquare }[] = [];
+export const EXPORT_MAX_ROWS = 5000;
+
+export const navItems: { title: string; url: string; icon: typeof MessageSquare }[] = [
+  { title: "Data", url: "/data", icon: Database },
+];
 
 export const cidbItems = [
   {
