@@ -151,7 +151,7 @@ export function FilterSidebar() {
   return (
     <div className="flex flex-col gap-4 p-1">
       {groups
-        .filter((group) => isFacetGroupVisible(group.values, group.selected))
+        .filter((group) => isFacetGroupVisible(group.values, group.selected, data.total))
         .map((group) => (
           <Fragment key={group.dimension}>
             <FacetGroup

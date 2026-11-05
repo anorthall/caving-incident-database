@@ -18,7 +18,7 @@ export function FacetGroup({ label, values, selected, onToggle }: FacetGroupProp
   const labelId = useId();
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState("");
-  const searchable = values.length > COLLAPSED_VISIBLE_COUNT;
+  const searchable = values.length > COLLAPSED_VISIBLE_COUNT || search !== "";
   const needle = search.trim().toLowerCase();
   const matching = needle
     ? values.filter((facet) => (facet.label ?? facet.value).toLowerCase().includes(needle))

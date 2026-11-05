@@ -144,6 +144,14 @@ export function yearRangeLabel(yearFrom?: number, yearTo?: number): string {
   return `Until ${yearTo}`;
 }
 
-export function isFacetGroupVisible(values: FacetValue[], selected: string[]): boolean {
-  return values.length > 1 || selected.length > 0;
+export function isFacetGroupVisible(
+  values: FacetValue[],
+  selected: string[],
+  total: number
+): boolean {
+  return (
+    values.length > 1 ||
+    selected.length > 0 ||
+    values.some((value) => value.count > 0 && value.count < total)
+  );
 }

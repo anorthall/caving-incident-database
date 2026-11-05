@@ -347,9 +347,9 @@ class IncidentQuery:
         if missing:
             found = {i: (n, c) for i, n, c in grouped.filter(**{f"{id_field}__in": missing})}
             names = dict(
-                Incident.objects.filter(**{f"{id_field}__in": missing}).values_list(
-                    id_field, name_field
-                )
+                Incident.objects.filter(**{f"{id_field}__in": missing})
+                .values_list(id_field, name_field)
+                .distinct()
             )
             facets.extend(
                 EntityFacet(

@@ -5,6 +5,7 @@ import {
   decadeRange,
   EMPTY_FILTERS,
   filterHref,
+  isFacetGroupVisible,
   parseFilters,
   parseSort,
   serializeFilters,
@@ -200,5 +201,21 @@ describe("people and entity filters", () => {
 
   it("counts has_location as one active filter", () => {
     expect(activeFilterCount({ ...EMPTY_FILTERS, has_location: true, caves: ["1"] })).toBe(2);
+  });
+});
+
+describe("isFacetGroupVisible", () => {
+  const one = [{ value: "a", count: 3 }];
+
+  it("hides a single value that matches every result", () => {
+    expect(isFacetGroupVisible(one, [], 3)).toBe(false);
+  });
+
+  it("shows a single value that narrows the results", () => {
+    expect(isFacetGroupVisible(one, [], 10)).toBe(true);
+  });
+
+  it("shows a group with a selection", () => {
+    expect(isFacetGroupVisible(one, ["a"], 3)).toBe(true);
   });
 });
