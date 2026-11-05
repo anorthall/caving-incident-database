@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-REPO="anorthall/incident-db"
+REPO="anorthall/caving-incident-database"
 APP_DIR="/opt/cidb"
 IMAGE="ghcr.io/${REPO}"
 REF="${1:-main}"
