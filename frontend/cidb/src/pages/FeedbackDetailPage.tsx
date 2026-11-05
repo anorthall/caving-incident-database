@@ -1,3 +1,4 @@
+import { usePageMeta } from "@/hooks/use-page-meta";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { useState } from "react";
@@ -27,6 +28,7 @@ const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline" | "dest
 };
 
 export function FeedbackDetailPage() {
+  usePageMeta("Feedback detail", "Staff area of the Caving Incident Database.");
   const { id } = useParams<{ id: string }>();
   const feedbackId = parseInt(id || "0", 10);
   const navigate = useNavigate();
