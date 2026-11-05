@@ -18,6 +18,8 @@ import { SearchPage } from "@/pages/SearchPage";
 import { DataQualityPage } from "@/pages/DataQualityPage";
 import { StaffLoginPage } from "@/pages/StaffLoginPage";
 
+const StatsPage = React.lazy(() => import("@/pages/StatsPage"));
+
 import * as Sentry from "@sentry/react";
 import * as React from "react";
 
@@ -51,6 +53,14 @@ function App() {
         <Route element={<RootLayout />}>
           <Route path="/" element={<SearchPage />} />
           <Route path="/incidents/:id" element={<IncidentPage />} />
+          <Route
+            path="/stats"
+            element={
+              <React.Suspense fallback={null}>
+                <StatsPage />
+              </React.Suspense>
+            }
+          />
           <Route path="/browse" element={<BrowsePage />} />
           <Route path="/browse/:dimension" element={<BrowsePage />} />
           <Route path="/data" element={<DataPage />} />
