@@ -19,3 +19,8 @@ class IncidentFacetsSchema(Schema):
     decades: list[DecadeFacetSchema]
     year_min: int | None
     year_max: int | None
+
+
+class StatRowSchema(Schema):
+    label: str
+    count: int

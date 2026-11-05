@@ -10,6 +10,7 @@ from cidb.src.incidents.api.schemas.facets import (
     DecadeFacetSchema,
     FacetValueSchema,
     IncidentFacetsSchema,
+    StatRowSchema,
 )
 from cidb.src.incidents.api.schemas.incident import (
     IncidentDetailSchema,
@@ -21,7 +22,7 @@ from cidb.src.incidents.models import (
     SearchQuery,
 )
 from cidb.src.incidents.queries.filters import IncidentFilters
-from cidb.src.incidents.queries.incidents import IncidentQuery, SortBy
+from cidb.src.incidents.queries.incidents import GroupBy, IncidentQuery, SortBy
 
 router = Router()
 
@@ -72,6 +73,16 @@ def search_incidents(
         page_size=page_size,
         total_pages=(result.total + page_size - 1) // page_size if result.total > 0 else 0,
     )
+
+
+@router.get("/stats", response=list[StatRowSchema])
+def get_stats(
+    request: HttpRequest, filters: Query[IncidentFilters], group_by: GroupBy
+) -> list[StatRowSchema]:
+    return [
+        StatRowSchema(label=r.label, count=r.count)
+        for r in IncidentQuery.aggregate(filters, group_by)
+    ]
 
 
 @router.get("/facets", response=IncidentFacetsSchema)
