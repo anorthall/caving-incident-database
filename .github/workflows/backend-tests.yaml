@@ -27,6 +27,9 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
+      - name: Check for missing migrations
+        run: python cidb/manage.py makemigrations --check --dry-run
+
       - name: Run tests
         run: pytest --tb=short -q
 
