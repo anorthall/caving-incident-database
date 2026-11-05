@@ -38,6 +38,7 @@ describe("DownloadMenu", () => {
   it("is disabled above the cap", () => {
     render(<DownloadMenu filters={FILTERS} total={EXPORT_MAX_ROWS + 1} />);
     expect(screen.getByRole("button", { name: /download/i })).toBeDisabled();
+    expect(screen.getByText(/limited to 5,000 results/i)).toBeVisible();
   });
 
   it("is enabled at the cap", () => {

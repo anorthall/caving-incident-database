@@ -13,6 +13,13 @@ class ExportFormat(StrEnum):
 
 
 COLUMNS = list(IncidentExportRow.model_fields)
+FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
+
+
+def neutralise_formula(value: object) -> object:
+    if isinstance(value, str) and value.startswith(FORMULA_PREFIXES):
+        return "'" + value
+    return value
 
 
 def stream_csv(rows: Iterable[IncidentExportRow]) -> Iterator[str]:
@@ -20,7 +27,7 @@ def stream_csv(rows: Iterable[IncidentExportRow]) -> Iterator[str]:
     writer = csv.DictWriter(buffer, fieldnames=COLUMNS)
     writer.writeheader()
     for row in rows:
-        writer.writerow(row.model_dump())
+        writer.writerow({key: neutralise_formula(value) for key, value in row.model_dump().items()})
         yield buffer.getvalue()
         buffer.seek(0)
         buffer.truncate()

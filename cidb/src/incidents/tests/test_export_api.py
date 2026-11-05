@@ -8,6 +8,8 @@ from django.http.response import HttpResponseBase
 from django.test import Client
 
 from cidb.src.incidents.api.endpoints import incidents as incidents_module
+from cidb.src.incidents.exports.rows import IncidentExportRow
+from cidb.src.incidents.exports.writers import stream_csv
 from cidb.src.incidents.models import Incident
 
 EXPORT = "/api/v1/incidents/export"
@@ -84,3 +86,27 @@ class TestExport:
 
     def test_invalid_format(self, api_client: Client, corpus: dict[str, Incident]) -> None:
         assert api_client.get(EXPORT, {"format": "xml"}).status_code == 422
+
+
+def test_csv_neutralises_formula_cells() -> None:
+    row = IncidentExportRow(
+        id=1,
+        title="=HYPERLINK(1)",
+        date="",
+        year=None,
+        cave="+cmd",
+        country="",
+        state="",
+        region="",
+        latitude=-12.5,
+        longitude=None,
+        tags="@x",
+        summary="\t-1",
+        url="/incidents/1",
+    )
+    parsed = list(csv.DictReader(io.StringIO("".join(stream_csv([row])))))[0]
+    assert parsed["title"] == "'=HYPERLINK(1)"
+    assert parsed["cave"] == "'+cmd"
+    assert parsed["tags"] == "'@x"
+    assert parsed["summary"] == "'\t-1"
+    assert parsed["latitude"] == "-12.5"
