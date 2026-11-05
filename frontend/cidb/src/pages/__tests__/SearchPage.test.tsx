@@ -81,7 +81,7 @@ describe("SearchPage", () => {
 
     await act(() => router.navigate("/"));
 
-    expect(screen.getByRole("textbox")).toHaveValue("");
+    expect(screen.getByRole("combobox")).toHaveValue("");
   });
 
   it("measures the time of every new search", async () => {
@@ -107,7 +107,7 @@ describe("SearchPage", () => {
     const callsAfterMount = random.mock.calls.length;
     expect(callsAfterMount).toBeGreaterThan(0);
 
-    fireEvent.change(screen.getByRole("textbox"), { target: { value: "rope" } });
+    fireEvent.change(screen.getByRole("combobox"), { target: { value: "rope" } });
 
     expect(random.mock.calls.length).toBe(callsAfterMount);
   });

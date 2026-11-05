@@ -5,8 +5,8 @@ import { Link, useParams } from "react-router-dom";
 import { IncidentLayoutFlat } from "@/components/incidents/IncidentLayoutFlat";
 import { Button } from "@/components/ui/button";
 import { RelatedIncidents } from "@/features/browse/RelatedIncidents";
-import { usePageTitle } from "@/hooks/use-page-title";
 import { getIncident } from "@/lib/api";
+import { usePageMeta } from "@/hooks/use-page-meta";
 import { markIncidentViewed } from "@/lib/viewed-incidents";
 
 export function IncidentPage() {
@@ -23,7 +23,7 @@ export function IncidentPage() {
     enabled: !isNaN(incidentId),
   });
 
-  usePageTitle(incident?.title);
+  usePageMeta(incident?.title ?? null, incident?.summary || "Caving incident report.");
 
   useEffect(() => {
     if (incident) {

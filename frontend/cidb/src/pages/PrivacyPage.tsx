@@ -1,4 +1,7 @@
+import { usePageMeta } from "@/hooks/use-page-meta";
+
 export function PrivacyPage() {
+  usePageMeta("Privacy Policy", "How the Caving Incident Database handles your data.");
   return (
     <article className="space-y-8">
       <header className="space-y-2">
