@@ -1,6 +1,7 @@
 import { parseAuthHeaders } from "./auth-api";
 import { notifyAuthUpdate } from "./auth-sync";
 import { getCsrfToken } from "./csrf";
+import { appendFilterParams } from "./filter-params";
 import { captureApiError } from "./sentry";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api/v1";
@@ -148,8 +149,36 @@ export interface PaginatedResponse<T> {
 export type SortField = "date" | "relevance" | "popularity" | "title" | "cave_name";
 export type SortOrder = "asc" | "desc";
 
-export interface SearchParams {
+export interface IncidentFilters {
   q?: string;
+  tags: string[];
+  countries: string[];
+  states: string[];
+  year_from?: number;
+  year_to?: number;
+}
+
+export interface FacetValue {
+  value: string;
+  count: number;
+}
+
+export interface DecadeFacet {
+  decade: number;
+  count: number;
+}
+
+export interface IncidentFacets {
+  total: number;
+  countries: FacetValue[];
+  states: FacetValue[];
+  tags: FacetValue[];
+  decades: DecadeFacet[];
+  year_min: number | null;
+  year_max: number | null;
+}
+
+export interface SearchParams extends Partial<IncidentFilters> {
   sort_by?: SortField;
   sort_order?: SortOrder;
   page?: number;
@@ -188,7 +217,7 @@ export async function searchIncidents(
 ): Promise<PaginatedResponse<IncidentListItem>> {
   const searchParams = new URLSearchParams();
 
-  if (params.q) searchParams.set("q", params.q);
+  appendFilterParams(searchParams, params);
   if (params.sort_by) searchParams.set("sort_by", params.sort_by);
   if (params.sort_order) searchParams.set("sort_order", params.sort_order);
   if (params.page) searchParams.set("page", String(params.page));
@@ -200,6 +229,21 @@ export async function searchIncidents(
 
   if (!response.ok) {
     throw new Error(`Search failed: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function getFacets(filters: IncidentFilters): Promise<IncidentFacets> {
+  const searchParams = new URLSearchParams();
+  appendFilterParams(searchParams, filters);
+
+  const response = await fetchWithRetry(
+    `${API_BASE_URL}/incidents/facets?${searchParams.toString()}`
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch facets: ${response.statusText}`);
   }
 
   return response.json();

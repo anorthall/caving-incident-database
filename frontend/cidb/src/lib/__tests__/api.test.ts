@@ -67,6 +67,56 @@ describe("searchIncidents", () => {
   });
 });
 
+describe("filter params", () => {
+  const filters = {
+    q: "rope",
+    tags: ["Flooding", "Rope & anchor"],
+    states: ["Tennessee"],
+    countries: [],
+    year_from: 1990,
+    year_to: 1999,
+  };
+
+  it("serialises repeated params for search", async () => {
+    fetchMock.mockResolvedValueOnce(
+      okResponse({ items: [], total: 0, page: 1, page_size: 20, total_pages: 0 })
+    );
+
+    const { searchIncidents } = await import("../api");
+    await searchIncidents({ ...filters, page: 1 });
+
+    const url = new URL(fetchMock.mock.calls[0][0] as string, "http://x");
+    expect(url.searchParams.getAll("tags")).toEqual(["Flooding", "Rope & anchor"]);
+    expect(url.searchParams.getAll("states")).toEqual(["Tennessee"]);
+    expect(url.searchParams.has("countries")).toBe(false);
+    expect(url.searchParams.get("year_from")).toBe("1990");
+    expect(url.searchParams.get("year_to")).toBe("1999");
+    expect(url.searchParams.get("q")).toBe("rope");
+  });
+
+  it("serialises repeated params for facets without sort or paging", async () => {
+    fetchMock.mockResolvedValueOnce(okResponse({ total: 3 }));
+
+    const { getFacets } = await import("../api");
+    const result = await getFacets(filters);
+
+    expect(result.total).toBe(3);
+    const url = new URL(fetchMock.mock.calls[0][0] as string, "http://x");
+    expect(url.pathname).toBe("/api/v1/incidents/facets");
+    expect(url.searchParams.getAll("tags")).toEqual(["Flooding", "Rope & anchor"]);
+    expect(url.searchParams.has("page")).toBe(false);
+  });
+
+  it("throws when facets request fails", async () => {
+    fetchMock.mockResolvedValueOnce(errorResponse(422));
+
+    const { getFacets } = await import("../api");
+    await expect(getFacets({ tags: [], states: [], countries: [] })).rejects.toThrow(
+      "Failed to fetch facets"
+    );
+  });
+});
+
 describe("getIncident", () => {
   it("fetches by ID", async () => {
     fetchMock.mockResolvedValueOnce(okResponse({ id: 42, title: "Test" }));
