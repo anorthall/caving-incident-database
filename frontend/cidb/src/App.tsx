@@ -30,8 +30,6 @@ Sentry.init({
     }),
     Sentry.replayIntegration(),
   ],
-  sendDefaultPii: true,
-  enableLogs: true,
   tracesSampleRate: 0.1,
   tracePropagationTargets: [
     /^\//,

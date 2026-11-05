@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 
 import pytest
 
@@ -9,7 +9,7 @@ from cidb.src.core.imprecise_date.model import DatePrecision, ImpreciseDate, Sea
 def test_from_date_year_only() -> None:
     date = ImpreciseDate.from_date(2024)
     assert date._raw == "2024"
-    assert date.date == datetime.date(2024, 1, 1)
+    assert date.date == dt.date(2024, 1, 1)
     assert date.precision == DatePrecision.YEAR
     assert str(date) == "2024"
 
@@ -17,7 +17,7 @@ def test_from_date_year_only() -> None:
 def test_from_date_year_and_month() -> None:
     date = ImpreciseDate.from_date(2024, 6)
     assert date._raw == "2024-06"
-    assert date.date == datetime.date(2024, 6, 1)
+    assert date.date == dt.date(2024, 6, 1)
     assert date.precision == DatePrecision.MONTH
     assert str(date) == "June 2024"
 
@@ -25,7 +25,7 @@ def test_from_date_year_and_month() -> None:
 def test_from_date_full_date() -> None:
     date = ImpreciseDate.from_date(2024, 6, 15)
     assert date._raw == "2024-06-15"
-    assert date.date == datetime.date(2024, 6, 15)
+    assert date.date == dt.date(2024, 6, 15)
     assert date.precision == DatePrecision.DAY
     assert str(date) == "June 15, 2024"
 
@@ -68,7 +68,7 @@ def test_from_date_invalid_date_feb_30() -> None:
 def test_from_season_spring() -> None:
     date = ImpreciseDate.from_season(2024, Season.SPRING)
     assert date._raw == "2024-spring"
-    assert date.date == datetime.date(2024, 3, 1)
+    assert date.date == dt.date(2024, 3, 1)
     assert date.precision == DatePrecision.SEASON
     assert date.season == Season.SPRING
     assert str(date) == "Spring 2024"
@@ -77,7 +77,7 @@ def test_from_season_spring() -> None:
 def test_from_season_summer() -> None:
     date = ImpreciseDate.from_season(2024, Season.SUMMER)
     assert date._raw == "2024-summer"
-    assert date.date == datetime.date(2024, 6, 1)
+    assert date.date == dt.date(2024, 6, 1)
     assert date.precision == DatePrecision.SEASON
     assert date.season == Season.SUMMER
     assert str(date) == "Summer 2024"
@@ -86,7 +86,7 @@ def test_from_season_summer() -> None:
 def test_from_season_autumn() -> None:
     date = ImpreciseDate.from_season(2024, Season.AUTUMN)
     assert date._raw == "2024-autumn"
-    assert date.date == datetime.date(2024, 9, 1)
+    assert date.date == dt.date(2024, 9, 1)
     assert date.precision == DatePrecision.SEASON
     assert date.season == Season.AUTUMN
     assert str(date) == "Autumn 2024"
@@ -95,7 +95,7 @@ def test_from_season_autumn() -> None:
 def test_from_season_winter() -> None:
     date = ImpreciseDate.from_season(2024, Season.WINTER)
     assert date._raw == "2024-winter"
-    assert date.date == datetime.date(2024, 12, 1)
+    assert date.date == dt.date(2024, 12, 1)
     assert date.precision == DatePrecision.SEASON
     assert date.season == Season.WINTER
     assert str(date) == "Winter 2024"
@@ -109,21 +109,21 @@ def test_from_season_invalid_year() -> None:
 @pytest.mark.parametrize("separator", ["-", ".", "/"])
 def test_parse_separators_month(separator: str) -> None:
     date = ImpreciseDate(f"2024{separator}06")
-    assert date.date == datetime.date(2024, 6, 1)
+    assert date.date == dt.date(2024, 6, 1)
     assert date.precision == DatePrecision.MONTH
 
 
 @pytest.mark.parametrize("separator", ["-", ".", "/"])
 def test_parse_separators_day(separator: str) -> None:
     date = ImpreciseDate(f"2024{separator}06{separator}15")
-    assert date.date == datetime.date(2024, 6, 15)
+    assert date.date == dt.date(2024, 6, 15)
     assert date.precision == DatePrecision.DAY
 
 
 @pytest.mark.parametrize("separator", ["-", ".", "/"])
 def test_parse_separators_season(separator: str) -> None:
     date = ImpreciseDate(f"2024{separator}summer")
-    assert date.date == datetime.date(2024, 6, 1)
+    assert date.date == dt.date(2024, 6, 1)
     assert date.precision == DatePrecision.SEASON
 
 
@@ -194,7 +194,7 @@ def test_field_from_db_value_valid() -> None:
     field = ImpreciseDateField()
     result = field.from_db_value("2024-06-15", None, None)
     assert isinstance(result, ImpreciseDate)
-    assert result.date == datetime.date(2024, 6, 15)
+    assert result.date == dt.date(2024, 6, 15)
 
 
 def test_field_to_python_none() -> None:

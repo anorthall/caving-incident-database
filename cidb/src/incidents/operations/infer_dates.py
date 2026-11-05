@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field
@@ -145,7 +145,7 @@ class InferDatesOperation(DataOperation):
         if output.inferred_year < MIN_YEAR:
             return False
 
-        if output.inferred_year > datetime.date.today().year:
+        if output.inferred_year > dt.date.today().year:
             return False
 
         current_year = date.year
@@ -159,7 +159,7 @@ class InferDatesOperation(DataOperation):
 
         try:
             if output.inferred_day:
-                datetime.date(
+                dt.date(
                     output.inferred_year,
                     output.inferred_month or 1,
                     output.inferred_day,
@@ -175,10 +175,10 @@ class InferDatesOperation(DataOperation):
             return False
         return not (next_date and inferred > next_date.date)
 
-    def _build_date_for_comparison(self, output: DateInferenceOutput) -> datetime.date | None:
+    def _build_date_for_comparison(self, output: DateInferenceOutput) -> dt.date | None:
         if output.inferred_year is None:
             return None
-        return datetime.date(
+        return dt.date(
             output.inferred_year,
             output.inferred_month or 1,
             output.inferred_day or 1,
