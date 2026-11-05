@@ -276,7 +276,7 @@ dependencies = [
     { name = "django-unfold" },
     { name = "email-validator" },
     { name = "gunicorn" },
-    { name = "logfire", extra = ["django", "psycopg", "redis", "system-metrics", "wsgi"] },
+    { name = "logfire", extra = ["django", "psycopg", "system-metrics", "wsgi"] },
     { name = "orjson" },
     { name = "pillow" },
     { name = "psycopg", extra = ["binary"] },
@@ -316,7 +316,7 @@ requires-dist = [
     { name = "django-unfold", specifier = ">=0.75.0" },
     { name = "email-validator", specifier = ">=2.0.0" },
     { name = "gunicorn" },
-    { name = "logfire", extras = ["django", "psycopg", "redis", "system-metrics", "wsgi"] },
+    { name = "logfire", extras = ["django", "psycopg", "system-metrics", "wsgi"] },
     { name = "orjson" },
     { name = "pillow" },
     { name = "psycopg", extras = ["binary"] },
@@ -1237,9 +1237,6 @@ httpx = [
 psycopg = [
     { name = "logfire-sdk", extra = ["psycopg"] },
 ]
-redis = [
-    { name = "logfire-sdk", extra = ["redis"] },
-]
 system-metrics = [
     { name = "logfire-sdk", extra = ["system-metrics"] },
 ]
@@ -1289,9 +1286,6 @@ httpx = [
 psycopg = [
     { name = "opentelemetry-instrumentation-psycopg" },
     { name = "packaging" },
-]
-redis = [
-    { name = "opentelemetry-instrumentation-redis" },
 ]
 system-metrics = [
     { name = "opentelemetry-instrumentation-system-metrics" },
@@ -1604,21 +1598,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/de/c9/5f2725d45c70bdcfc1022fa2df3c242ff8e56f5bf23e6de9c49b8a73f69f/opentelemetry_instrumentation_psycopg-0.66b2.tar.gz", hash = "sha256:d149293a6a1174d6edcf9c7d35ff1b30614fe60c55a9148610ac5c18ea07d28b", size = 13874, upload-time = "2026-10-29T17:38:37.547Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/fe/42/2052f97ffbc45389e2e636d9220844c6c13ef3e3f99262666dbdebb5219a/opentelemetry_instrumentation_psycopg-0.66b2-py3-none-any.whl", hash = "sha256:23bb8b81bb0faacabf7f2c41ed05f0e7ee45f992546097d2403f33f8a5e09df8", size = 11106, upload-time = "2026-10-29T17:37:41.826Z" },
-]
-
-[[package]]
-name = "opentelemetry-instrumentation-redis"
-version = "0.66b2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "opentelemetry-api" },
-    { name = "opentelemetry-instrumentation" },
-    { name = "opentelemetry-semantic-conventions" },
-    { name = "wrapt" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/7f/d5/3aa242b02decea1149fbe3f284d4c720dc8e569921b4e57053ddcaddd70d/opentelemetry_instrumentation_redis-0.66b2.tar.gz", hash = "sha256:15650fda1f51693b607eae8448ebfd79ad4679efb2f6a1e8c5aca5f6effd0ed1", size = 18057, upload-time = "2026-10-29T17:38:42.623Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/cb/92/bd7e6179ebec2e504e3ec07b5107e49bf6511acaf10eb10ae57b7ca1e423/opentelemetry_instrumentation_redis-0.66b2-py3-none-any.whl", hash = "sha256:49c729ec4036020a8f9a0bfb84760d42215d3fbfbc4aa1ec89c6199f67c045b0", size = 14884, upload-time = "2026-10-29T17:37:49.373Z" },
 ]
 
 [[package]]
