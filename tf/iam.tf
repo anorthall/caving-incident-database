@@ -64,7 +64,7 @@ data "aws_iam_policy_document" "github_deploy_assume" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:anorthall/incident-db:environment:production"]
+      values   = ["repo:anorthall@3952223/caving-incident-database@725377967:environment:production"]
     }
   }
 }
