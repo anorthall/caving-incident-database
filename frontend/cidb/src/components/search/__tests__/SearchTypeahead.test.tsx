@@ -45,4 +45,13 @@ describe("SearchTypeahead", () => {
     fireEvent.change(screen.getByRole("combobox"), { target: { value: "c" } });
     expect(getSearchSuggestions).not.toHaveBeenCalled();
   });
+
+  it("autofocuses and hides the caret only while empty", () => {
+    render(<Harness onSubmit={vi.fn()} />);
+    const input = screen.getByRole("combobox");
+    expect(input).toHaveFocus();
+    expect(input).toHaveClass("caret-transparent");
+    fireEvent.change(input, { target: { value: "c" } });
+    expect(input).not.toHaveClass("caret-transparent");
+  });
 });

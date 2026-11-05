@@ -75,6 +75,7 @@ export function SearchTypeahead({
         aria-autocomplete="list"
         aria-activedescendant={expanded && active >= 0 ? `${listId}-${active}` : undefined}
         autoComplete="off"
+        autoFocus
         placeholder={placeholder}
         value={value}
         onChange={(e) => {
@@ -85,7 +86,10 @@ export function SearchTypeahead({
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
         onKeyDown={handleKeyDown}
-        className="w-full h-16 text-lg sm:text-2xl px-4 sm:px-8 rounded-md bg-background text-foreground outline-none placeholder:text-muted-foreground/50"
+        className={cn(
+          "w-full h-16 text-lg sm:text-2xl px-4 sm:px-8 rounded-md bg-background text-foreground outline-none placeholder:text-muted-foreground/50",
+          !value && "caret-transparent"
+        )}
       />
       <ul
         id={listId}
