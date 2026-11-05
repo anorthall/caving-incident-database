@@ -47,22 +47,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unregisterAuthCallback();
   }, [updateUser]);
 
-  const checkAuth = useCallback(async () => {
-    if (initialCheckDone.current) return;
+  const checkAuth = useCallback(() => {
+    if (initialCheckDone.current) return Promise.resolve();
     initialCheckDone.current = true;
 
-    try {
-      const currentUser = await getCurrentUser();
-      updateUser(currentUser);
-    } catch {
-      updateUser(null);
-    } finally {
-      setIsLoading(false);
-    }
+    return getCurrentUser()
+      .then(updateUser)
+      .catch(() => updateUser(null))
+      .finally(() => setIsLoading(false));
   }, [updateUser]);
 
   useEffect(() => {
-    checkAuth();
+    void checkAuth();
   }, [checkAuth]);
 
   const login = useCallback(
