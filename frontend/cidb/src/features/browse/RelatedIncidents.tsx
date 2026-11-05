@@ -17,7 +17,7 @@ export function RelatedIncidents({ incidentId }: { incidentId: number }) {
 
   return (
     <section aria-labelledby="related-incidents-heading" className="mt-12">
-      <h2 id="related-incidents-heading" className="mb-2 text-xl font-semibold tracking-tight">
+      <h2 id="related-incidents-heading" className="mb-3 text-xl font-semibold tracking-tight">
         Related incidents
       </h2>
       <ul className="divide-y border-y">
@@ -25,7 +25,7 @@ export function RelatedIncidents({ incidentId }: { incidentId: number }) {
           <li key={incident.id}>
             <Link
               to={`/incidents/${incident.id}`}
-              className="flex cursor-pointer flex-col gap-1 rounded-sm px-1 py-3 outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50"
+              className="flex cursor-pointer flex-col gap-1 -mx-2 rounded-sm px-2 py-3 outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50"
             >
               <span className="font-medium">{incident.title}</span>
               <span className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">

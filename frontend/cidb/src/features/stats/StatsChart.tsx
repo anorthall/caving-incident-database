@@ -13,9 +13,11 @@ const ROW_CLASS =
 export function StatsChart({
   chart,
   filters,
+  isFiltered,
 }: {
   chart: StatsChartConfig;
   filters: IncidentFilters;
+  isFiltered: boolean;
 }) {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["stats", chart.groupBy, filters],
@@ -38,7 +40,9 @@ export function StatsChart({
         ) : isError ? (
           <p className="text-destructive text-sm">Failed to load this chart.</p>
         ) : rows.length === 0 ? (
-          <p className="text-muted-foreground text-sm">No data for the current filters.</p>
+          <p className="text-muted-foreground text-sm">
+            {isFiltered ? "No data for the current filters." : "No data recorded yet."}
+          </p>
         ) : (
           <ul className="divide-y">
             {rows.map((row) => {
@@ -47,11 +51,13 @@ export function StatsChart({
                   <span className="min-w-0 text-sm break-words">
                     {chart.formatLabel(row.label)}
                   </span>
-                  <span className="text-sm font-medium tabular-nums">{row.count}</span>
+                  <span className="text-sm font-medium tabular-nums">
+                    {row.count.toLocaleString()}
+                  </span>
                   <span className="bg-muted col-span-2 h-2 overflow-hidden rounded-full">
                     <span
                       className="bg-primary block h-full rounded-full"
-                      style={{ width: `${(row.count / max) * 100}%` }}
+                      style={{ width: `max(${(row.count / max) * 100}%, 0.5rem)` }}
                     />
                   </span>
                 </>

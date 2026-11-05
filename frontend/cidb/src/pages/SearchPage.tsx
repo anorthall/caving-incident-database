@@ -14,6 +14,7 @@ import { RecentlyViewed } from "@/components/search/RecentlyViewed";
 import { SearchTypeahead } from "@/components/search/SearchTypeahead";
 import { SortControls, type ViewMode } from "@/components/search/SortControls";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { DownloadMenu } from "@/features/search/DownloadMenu";
 import { ActiveFilterChips } from "@/features/search/ActiveFilterChips";
 import { BrowseEntryPoints } from "@/features/search/BrowseEntryPoints";
@@ -39,6 +40,8 @@ import {
 } from "@/constants.ts";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { useStaffCommands } from "@/hooks/use-staff-commands";
+
+const TABLE_HINT_TOAST_ID = "table-view-hint";
 
 export function SearchPage() {
   const { filters, sortBy, sortOrder, hasFilters, clear, setSort } = useIncidentFilters();
@@ -88,6 +91,10 @@ export function SearchPage() {
   const handleViewModeChange = useCallback((mode: ViewMode) => {
     setViewMode(mode);
     localStorage.setItem(VIEW_MODE_STORAGE_KEY, mode);
+    if (mode === "table") {
+      localStorage.setItem(TABLE_VIEW_HINT_STORAGE_KEY, "true");
+      toast.dismiss(TABLE_HINT_TOAST_ID);
+    }
   }, []);
 
   const searchStartRef = useRef<number>(0);
@@ -186,13 +193,14 @@ export function SearchPage() {
         <div className="flex items-start gap-3">
           <Table2 className="h-5 w-5 mt-0.5 text-primary" />
           <div>
-            <p className="font-medium">Try Table View</p>
+            <p className="font-medium">Try table view</p>
             <p className="text-sm text-muted-foreground mt-1">
               Switch to table view for easier scanning and sorting of incidents.
             </p>
           </div>
         </div>,
         {
+          id: TABLE_HINT_TOAST_ID,
           duration: TABLE_HINT_DURATION_MS,
           action: {
             label: "Try it",
@@ -396,6 +404,20 @@ export function SearchPage() {
               />
             )}
 
+            {!data && !error && (
+              <div aria-hidden="true">
+                <Skeleton className="mb-2 h-5 w-40" />
+                <Skeleton className="mb-4 h-9 w-full" />
+                {Array.from({ length: 4 }, (_, index) => (
+                  <div key={index} className="space-y-2 border-b py-4">
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-16 w-full" />
+                  </div>
+                ))}
+              </div>
+            )}
+
             {data && allItems.length === 0 && (
               <>
                 <NoResultsMessage onClearFilters={hasFilters ? () => clear(true) : undefined} />
@@ -445,6 +467,9 @@ export function SearchPage() {
       <Button
         onClick={scrollToTop}
         size="icon"
+        aria-label="Back to top"
+        aria-hidden={!showBackToTop}
+        tabIndex={showBackToTop ? 0 : -1}
         className={`fixed bottom-4 right-4 rounded-full shadow-lg transition-opacity duration-300 cursor-pointer ${showBackToTop ? "opacity-100" : "opacity-0 pointer-events-none"}`}
       >
         <ChevronUp className="h-5 w-5" />

@@ -2,20 +2,23 @@ import { Monitor, Moon, Sun } from "lucide-react";
 import * as React from "react";
 import { useCallback, useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useIncidentFilters } from "@/features/search/use-incident-filters";
 import { useStaffCommands } from "@/hooks/use-staff-commands";
 
 import { AppSidebar } from "@/components/layout/AppSidebar.tsx";
 import { FeedbackModal } from "@/components/forms/FeedbackModal";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { getCookie } from "@/lib/cookies";
-import { useTheme } from "@/lib/theme";
+import { type Theme, useTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { MOBILE_BREAKPOINT, SIDEBAR_COOKIE_KEY } from "@/constants.ts";
 
@@ -28,8 +31,12 @@ export function RootLayout() {
   const sidebarOpen = getSidebarStateFromCookie();
   const navigate = useNavigate();
   const isSearchRoute = useLocation().pathname === "/";
+  const { filters, hasFilters } = useIncidentFilters();
+  const isLanding = isSearchRoute && !filters.q && !hasFilters;
+  const urlQuery = isSearchRoute ? (filters.q ?? "") : "";
   const { handleStaffCommand } = useStaffCommands();
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(urlQuery);
+  const [prevUrlQuery, setPrevUrlQuery] = useState(urlQuery);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isMobile, setIsMobile] = useState(
     () => typeof window !== "undefined" && window.innerWidth < MOBILE_BREAKPOINT
@@ -41,6 +48,11 @@ export function RootLayout() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  if (urlQuery !== prevUrlQuery) {
+    setPrevUrlQuery(urlQuery);
+    setQuery(urlQuery);
+  }
 
   const ThemeIcon = theme === "dark" ? Moon : theme === "light" ? Sun : Monitor;
 
@@ -54,7 +66,6 @@ export function RootLayout() {
           return;
         }
         navigate(`/?q=${encodeURIComponent(query.trim())}`);
-        setQuery("");
       }
     },
     [query, navigate, handleStaffCommand]
@@ -71,7 +82,11 @@ export function RootLayout() {
 
               <form
                 onSubmit={handleSearch}
-                className="max-w-3xl w-full px-4 transition-all duration-300 ease-in-out"
+                aria-hidden={isLanding}
+                className={cn(
+                  "max-w-3xl w-full px-4 transition-all duration-300 ease-in-out",
+                  isLanding && "invisible"
+                )}
               >
                 <Input
                   type="text"
@@ -80,6 +95,7 @@ export function RootLayout() {
                   onChange={(e) => setQuery(e.target.value)}
                   onFocus={() => setIsSearchFocused(true)}
                   onBlur={() => setIsSearchFocused(false)}
+                  aria-label="Search incidents"
                   className="h-10 text-base w-full"
                 />
               </form>
@@ -89,31 +105,29 @@ export function RootLayout() {
                 style={{ overflow: "hidden" }}
               >
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="cursor-pointer outline-none p-2 hover:bg-accent hover:text-accent-foreground rounded-md">
-                    <ThemeIcon className="h-5 w-5" />
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" aria-label="Change theme">
+                      <ThemeIcon className="h-5 w-5" />
+                    </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="shadow-none p-0 min-w-0">
-                    <DropdownMenuItem
-                      onClick={() => setTheme("light")}
-                      className={`cursor-pointer rounded-none ${theme === "light" ? "bg-accent" : ""}`}
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuRadioGroup
+                      value={theme}
+                      onValueChange={(value) => setTheme(value as Theme)}
                     >
-                      <Sun className="h-4 w-4 mr-2" />
-                      Light
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setTheme("dark")}
-                      className={`cursor-pointer rounded-none ${theme === "dark" ? "bg-accent" : ""}`}
-                    >
-                      <Moon className="h-4 w-4 mr-2" />
-                      Dark
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setTheme("system")}
-                      className={`cursor-pointer rounded-none ${theme === "system" ? "bg-accent" : ""}`}
-                    >
-                      <Monitor className="h-4 w-4 mr-2" />
-                      System
-                    </DropdownMenuItem>
+                      <DropdownMenuRadioItem value="light">
+                        <Sun className="h-4 w-4" />
+                        Light
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="dark">
+                        <Moon className="h-4 w-4" />
+                        Dark
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="system">
+                        <Monitor className="h-4 w-4" />
+                        System
+                      </DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>

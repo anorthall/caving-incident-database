@@ -1,8 +1,13 @@
 import { Check, Eye } from "lucide-react";
 import { memo } from "react";
+import { Link } from "react-router-dom";
+
 import { Badge } from "@/components/ui/badge";
 import type { IncidentListItem } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import { isIncidentViewed } from "@/lib/viewed-incidents";
+
+const CARD_TAG_LIMIT = 5;
 
 interface IncidentCardProps {
   incident: IncidentListItem;
@@ -11,72 +16,68 @@ interface IncidentCardProps {
 
 export const IncidentCard = memo(function IncidentCard({ incident, onClick }: IncidentCardProps) {
   const viewed = isIncidentViewed(incident.id);
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      onClick?.();
-    }
-  };
+  const meta = [incident.date?.display, incident.cave_name, incident.location_summary].filter(
+    (part): part is string => !!part
+  );
 
   return (
     <article className="py-4 border-b last:border-b-0">
-      <h2
-        onClick={onClick}
-        onKeyDown={handleKeyDown}
-        tabIndex={onClick ? 0 : undefined}
-        role={onClick ? "button" : undefined}
-        className={`text-lg font-medium hover:underline cursor-pointer mb-1 w-fit flex items-center gap-2 ${viewed ? "text-muted-foreground" : ""}`}
-      >
-        {incident.title}
-        {viewed && (
-          <Check className="h-4 w-4 text-muted-foreground/70" aria-label="Previously viewed" />
-        )}
+      <h2 className="mb-1 text-lg font-medium">
+        <Link
+          to={`/incidents/${incident.id}`}
+          onClick={(event) => {
+            if (!onClick || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+              return;
+            }
+            event.preventDefault();
+            onClick();
+          }}
+          className={cn(
+            "rounded-sm underline-offset-4 outline-none hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50",
+            viewed && "text-muted-foreground"
+          )}
+        >
+          {incident.title}
+          {viewed && (
+            <Check
+              className="ml-2 inline-block h-4 w-4 align-[-0.125em] text-muted-foreground/70"
+              aria-label="Previously viewed"
+            />
+          )}
+        </Link>
       </h2>
 
-      <div
-        onClick={onClick}
-        onKeyDown={handleKeyDown}
-        tabIndex={onClick ? 0 : undefined}
-        role={onClick ? "button" : undefined}
-        aria-label={`View details for ${incident.title}`}
-        className="flex items-center gap-2 text-sm text-muted-foreground mb-2 cursor-pointer hover:text-foreground transition-colors w-fit"
-      >
-        {incident.date && <span>{incident.date.display}</span>}
-        {incident.cave_name && (
-          <>
-            <span>·</span>
-            <span>{incident.cave_name}</span>
-          </>
-        )}
-        {incident.location_summary && (
-          <>
-            <span>·</span>
-            <span>{incident.location_summary}</span>
-          </>
-        )}
+      <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+        {meta.map((part, index) => (
+          <span key={index} className="inline-flex items-center gap-2">
+            {index > 0 && <span aria-hidden="true">·</span>}
+            {part}
+          </span>
+        ))}
         {incident.view_count > 0 && (
-          <>
-            <span>·</span>
-            <span className="flex items-center gap-1">
-              <Eye className="h-3 w-3" />
+          <span className="inline-flex items-center gap-2">
+            {meta.length > 0 && <span aria-hidden="true">·</span>}
+            <span className="inline-flex items-center gap-1">
+              <Eye className="h-3 w-3" aria-label="Views" />
               {incident.view_count.toLocaleString()}
             </span>
-          </>
+          </span>
         )}
       </div>
 
       {incident.summary && <p className="text-sm text-muted-foreground">{incident.summary}</p>}
 
       {incident.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mt-3">
-          {incident.tags.slice(0, 5).map((tag) => (
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
+          {incident.tags.slice(0, CARD_TAG_LIMIT).map((tag) => (
             <Badge key={tag.id} variant="outline" className="text-xs">
               {tag.name}
             </Badge>
           ))}
-          {incident.tags.length > 5 && (
-            <span className="text-xs text-muted-foreground">+{incident.tags.length - 5} more</span>
+          {incident.tags.length > CARD_TAG_LIMIT && (
+            <span className="text-xs text-muted-foreground">
+              +{incident.tags.length - CARD_TAG_LIMIT}
+            </span>
           )}
         </div>
       )}

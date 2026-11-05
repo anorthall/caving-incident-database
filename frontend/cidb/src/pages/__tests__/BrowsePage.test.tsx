@@ -34,7 +34,7 @@ describe("BrowsePage", () => {
   it("lists dimensions on the index and sets the title", () => {
     renderAt("/browse");
     expect(screen.getByRole("link", { name: /By tag/ })).toHaveAttribute("href", "/browse/tag");
-    expect(document.title).toBe("Browse | Caving Incident Database");
+    expect(document.title).toBe("Browse | CIDB");
   });
 
   it("lists values with counts linking to filtered search", async () => {
@@ -49,7 +49,7 @@ describe("BrowsePage", () => {
     );
     expect(screen.getByText("3")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Browse" })).toHaveAttribute("href", "/browse");
-    expect(document.title).toBe("Browse by state | Caving Incident Database");
+    expect(document.title).toBe("Browse by state | CIDB");
   });
 
   it("filters the list by typed text", async () => {

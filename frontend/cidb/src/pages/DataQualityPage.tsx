@@ -4,6 +4,7 @@ import { Navigate, Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { usePageMeta } from "@/hooks/use-page-meta";
 import { getDataQuality, type DataQualitySample } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 
@@ -17,6 +18,7 @@ function sampleHref(sample: DataQualitySample): string {
 
 export function DataQualityPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  usePageMeta("Data quality", "Staff area of the Caving Incident Database.");
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["data-quality"],
     queryFn: getDataQuality,
@@ -37,7 +39,7 @@ export function DataQualityPage() {
 
   return (
     <div className="space-y-4 max-w-[1400px] mx-auto w-full min-w-0">
-      <h1 className="text-2xl font-semibold">Data quality</h1>
+      <h1 className="text-3xl font-bold tracking-tight">Data quality</h1>
 
       {error && (
         <div className="flex flex-col gap-3 border-b py-4 sm:flex-row sm:items-center sm:justify-between">

@@ -34,14 +34,20 @@ export function FilterSheet({ resultCount, className }: FilterSheetProps) {
           {activeCount > 0 && <Badge variant="secondary">{activeCount}</Badge>}
         </Button>
       </SheetTrigger>
-      <SheetContent side="left">
+      <SheetContent
+        side="left"
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+          (event.currentTarget as HTMLElement).focus();
+        }}
+      >
         <SheetHeader>
           <SheetTitle>Filters</SheetTitle>
           <SheetDescription className="sr-only">
             Narrow incidents by tag, state, country and year.
           </SheetDescription>
         </SheetHeader>
-        <div className="flex-1 overflow-y-auto px-4">
+        <div className="flex-1 overflow-y-auto px-3">
           <FilterSidebar />
         </div>
         <SheetFooter>

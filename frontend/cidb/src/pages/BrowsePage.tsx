@@ -19,7 +19,7 @@ import {
   browseLabel,
   isBrowseDimension,
 } from "@/features/browse/dimensions";
-import { usePageTitle } from "@/hooks/use-page-title";
+import { usePageMeta } from "@/hooks/use-page-meta";
 import { type BrowseDimension, getBrowseValues } from "@/lib/api";
 
 function BrowseIndex() {
@@ -29,7 +29,7 @@ function BrowseIndex() {
         <li key={item.dimension}>
           <Link
             to={`/browse/${item.dimension}`}
-            className="flex cursor-pointer items-center justify-between gap-4 rounded-sm px-1 py-3 outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50"
+            className="flex cursor-pointer items-center justify-between gap-4 -mx-2 rounded-sm px-2 py-3 outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50"
           >
             <span className="flex flex-col">
               <span className="font-medium">By {item.label.toLowerCase()}</span>
@@ -52,10 +52,13 @@ function BrowseValues({ dimension }: { dimension: BrowseDimension }) {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-4" aria-busy="true">
         <Skeleton className="h-9 w-full" />
-        <Skeleton className="h-9 w-full" />
-        <Skeleton className="h-9 w-full" />
+        <div className="flex flex-col gap-1">
+          {Array.from({ length: 8 }, (_, index) => (
+            <Skeleton key={index} className="h-9 w-full" />
+          ))}
+        </div>
       </div>
     );
   }
@@ -90,7 +93,7 @@ function BrowseValues({ dimension }: { dimension: BrowseDimension }) {
             <li key={`${item.id ?? ""}:${item.value}`}>
               <Link
                 to={browseHref(dimension, item)}
-                className="flex cursor-pointer items-center justify-between gap-4 rounded-sm px-1 py-2 outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                className="flex cursor-pointer items-center justify-between gap-4 -mx-2 rounded-sm px-2 py-2 outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50"
               >
                 <span className="min-w-0 truncate font-medium">
                   {browseLabel(dimension, item.value)}
@@ -112,38 +115,31 @@ export function BrowsePage() {
   const active = isBrowseDimension(dimension)
     ? BROWSE_DIMENSIONS.find((item) => item.dimension === dimension)
     : undefined;
-  usePageTitle(active ? `Browse by ${active.label.toLowerCase()}` : "Browse");
+  const title = active ? `Browse by ${active.label.toLowerCase()}` : "Browse";
+  usePageMeta(title, "Browse caving incidents by state, country, tag, cave or decade.");
 
   if (dimension !== undefined && !active) {
     return <Navigate to="/browse" replace />;
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-6">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            {active ? (
+    <div className="flex w-full flex-col gap-6">
+      {active && (
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
               <BreadcrumbLink asChild>
                 <Link to="/browse">Browse</Link>
               </BreadcrumbLink>
-            ) : (
-              <BreadcrumbPage>Browse</BreadcrumbPage>
-            )}
-          </BreadcrumbItem>
-          {active && (
-            <>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>{active.label}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </>
-          )}
-        </BreadcrumbList>
-      </Breadcrumb>
-      <h1 className="text-3xl font-bold tracking-tight">
-        {active ? `Browse by ${active.label.toLowerCase()}` : "Browse"}
-      </h1>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{active.label}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      )}
+      <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
       {active ? (
         <BrowseValues key={active.dimension} dimension={active.dimension} />
       ) : (

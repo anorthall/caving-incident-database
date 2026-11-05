@@ -64,7 +64,7 @@ export function FacetGroup({ label, values, selected, onToggle }: FacetGroupProp
         <Button
           variant="ghost"
           size="sm"
-          className="cursor-pointer justify-start"
+          className="cursor-pointer justify-start px-1.5 text-muted-foreground"
           onClick={() => setExpanded(true)}
         >
           Show all ({values.length})

@@ -212,7 +212,7 @@ export function FeedbackDetailPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Update Status</CardTitle>
+              <CardTitle>Update status</CardTitle>
               <CardDescription>Change the status and add reviewer notes</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -249,7 +249,7 @@ export function FeedbackDetailPage() {
                   disabled={!newStatus || resolveMutation.isPending}
                   className="cursor-pointer"
                 >
-                  {resolveMutation.isPending ? "Updating..." : "Update Status"}
+                  {resolveMutation.isPending ? "Updating..." : "Update status"}
                 </Button>
                 <Button
                   variant="outline"
