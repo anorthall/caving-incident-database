@@ -20,4 +20,18 @@ describe("usePageMeta", () => {
     expect(document.title).toBe("CIDB - Caving Incident DB");
     expect(document.head.querySelectorAll('meta[name="description"]')).toHaveLength(1);
   });
+
+  it("restores the previous title and description on unmount", () => {
+    document.title = "Before";
+    const tag = document.createElement("meta");
+    tag.name = "description";
+    tag.content = "Old";
+    document.head.appendChild(tag);
+    const { unmount } = renderHook(() => usePageMeta("X", "New"));
+    expect(document.title).toBe("X | CIDB");
+    unmount();
+    expect(document.title).toBe("Before");
+    expect(tag.content).toBe("Old");
+    tag.remove();
+  });
 });

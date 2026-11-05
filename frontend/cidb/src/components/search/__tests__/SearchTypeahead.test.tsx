@@ -40,6 +40,34 @@ describe("SearchTypeahead", () => {
     await waitFor(() => expect(input).toHaveAttribute("aria-expanded", "false"));
   });
 
+  it("selects an option on click", async () => {
+    const onSubmit = vi.fn();
+    render(<Harness onSubmit={onSubmit} />);
+    fireEvent.change(screen.getByRole("combobox"), { target: { value: "cav" } });
+    const option = await screen.findByRole("option", { name: "cave dive" });
+    fireEvent.mouseDown(option);
+    expect(onSubmit).not.toHaveBeenCalled();
+    fireEvent.click(option);
+    expect(onSubmit).toHaveBeenCalledWith("cave dive");
+  });
+
+  it("submits typed text when the active index is stale", async () => {
+    const onSubmit = vi.fn();
+    vi.mocked(getSearchSuggestions).mockImplementation(async (q) => ({
+      suggestions: q === "cav" ? ["cave rescue", "cave dive"] : ["cave rescue"],
+    }));
+    render(<Harness onSubmit={onSubmit} />);
+    const input = screen.getByRole("combobox");
+    fireEvent.change(input, { target: { value: "cav" } });
+    await screen.findByRole("option", { name: "cave dive" });
+    fireEvent.keyDown(input, { key: "ArrowUp" });
+    fireEvent.change(input, { target: { value: "cave" } });
+    fireEvent.keyDown(input, { key: "ArrowDown" });
+    fireEvent.keyDown(input, { key: "ArrowDown" });
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(onSubmit).toHaveBeenCalledWith(expect.any(String));
+  });
+
   it("closes on escape and does not fetch for short input", () => {
     render(<Harness onSubmit={vi.fn()} />);
     fireEvent.change(screen.getByRole("combobox"), { target: { value: "c" } });

@@ -60,7 +60,7 @@ export function SearchTypeahead({
       setActive(-1);
     } else if (e.key === "Enter" && expanded && active >= 0) {
       e.preventDefault();
-      choose(suggestions[active]);
+      choose(active < suggestions.length ? suggestions[active] : value);
     }
   };
 
@@ -103,10 +103,8 @@ export function SearchTypeahead({
             id={`${listId}-${i}`}
             role="option"
             aria-selected={i === active}
-            onMouseDown={(e) => {
-              e.preventDefault();
-              choose(s);
-            }}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => choose(s)}
             className={cn(
               "flex cursor-pointer items-center gap-2 px-4 py-3 text-base",
               i === active ? "bg-accent text-accent-foreground" : "hover:bg-accent/50"
