@@ -4,6 +4,7 @@ import {
   Dices,
   ExternalLink,
   LogOut,
+  DatabaseZap,
   MessageSquare,
   Settings,
   User,
@@ -264,6 +265,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <Link to="/staff/feedback">
                       <ClipboardList className="h-4 w-4" />
                       <span>Feedback</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname === "/staff/data-quality"}
+                    tooltip="Data quality"
+                  >
+                    <Link to="/staff/data-quality">
+                      <DatabaseZap className="h-4 w-4" />
+                      <span>Data quality</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

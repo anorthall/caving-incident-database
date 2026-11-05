@@ -1,4 +1,9 @@
-from django.contrib import admin
+from typing import Any
+
+from django.contrib import admin, messages
+from django.db import transaction
+from django.db.models import Count, QuerySet
+from django.http import HttpRequest
 from unfold.admin import ModelAdmin, TabularInline
 
 from cidb.src.incidents.models import (
@@ -59,11 +64,60 @@ class SourceExtractInline(TabularInline[SourceExtract, SourceFile]):
     readonly_fields = ("sequence",)
 
 
+REVIEW_TAG = "needs-review"
+
+
+class DateYearFilter(admin.SimpleListFilter):
+    title = "year"
+    parameter_name = "date_year"
+
+    def lookups(
+        self, request: HttpRequest, model_admin: admin.ModelAdmin[Any]
+    ) -> list[tuple[str, str]]:
+        years = (
+            Incident.objects.exclude(date_year__isnull=True)
+            .order_by("-date_year")
+            .values_list("date_year", flat=True)
+            .distinct()
+        )
+        return [(str(y), str(y)) for y in years] + [("none", "Unknown")]
+
+    def queryset(self, request: HttpRequest, queryset: QuerySet[Incident]) -> QuerySet[Incident]:
+        value = self.value()
+        if value == "none":
+            return queryset.filter(date_year__isnull=True)
+        if value and value.isdigit():
+            return queryset.filter(date_year=int(value))
+        return queryset
+
+
 @admin.register(Tag)
 class TagAdmin(ModelAdmin[Tag]):
-    list_display = ("id", "name", "created_at")
+    list_display = ("id", "name", "incident_count", "created_at")
+    list_filter = ("created_at",)
     search_fields = ("name",)
     ordering = ("name",)
+    actions = ("merge_tags",)
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Tag]:
+        return super().get_queryset(request).annotate(_incident_count=Count("incidents"))
+
+    @admin.display(description="Incidents", ordering="_incident_count")
+    def incident_count(self, obj: Tag) -> int:
+        return int(getattr(obj, "_incident_count", 0))
+
+    @admin.action(description="Merge selected tags into the oldest selected tag")
+    def merge_tags(self, request: HttpRequest, queryset: QuerySet[Tag]) -> None:
+        tags = list(queryset.order_by("id"))
+        if len(tags) < 2:
+            self.message_user(request, "Select at least two tags", messages.WARNING)
+            return
+        target, sources = tags[0], tags[1:]
+        with transaction.atomic():
+            for incident in Incident.objects.filter(tags__in=sources).distinct():
+                incident.tags.add(target)
+            Tag.objects.filter(pk__in=[t.pk for t in sources]).delete()
+        self.message_user(request, f"Merged {len(sources)} tags into {target.name}")
 
 
 @admin.register(Injury)
@@ -91,9 +145,17 @@ class GeographicAreaAdmin(ModelAdmin[GeographicArea]):
 
 @admin.register(Location)
 class LocationAdmin(ModelAdmin[Location]):
-    list_display = ("id", "__str__", "country_text", "state_text", "region_text", "canonical_area")
+    list_display = (
+        "id",
+        "__str__",
+        "country_text",
+        "state_text",
+        "region_text",
+        "canonical_area",
+        "cave_count",
+    )
     search_fields = ("country_text", "state_text", "region_text")
-    list_filter = ("country_text",)
+    list_filter = ("country_text", "state_text")
     autocomplete_fields = ("canonical_area",)
 
     fieldsets = (
@@ -102,13 +164,28 @@ class LocationAdmin(ModelAdmin[Location]):
         ("Coordinates", {"fields": ("latitude", "longitude")}),
     )
 
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Location]:
+        return super().get_queryset(request).annotate(_cave_count=Count("caves"))
+
+    @admin.display(description="Caves", ordering="_cave_count")
+    def cave_count(self, obj: Location) -> int:
+        return int(getattr(obj, "_cave_count", 0))
+
 
 @admin.register(Cave)
 class CaveAdmin(ModelAdmin[Cave]):
-    list_display = ("id", "name", "location", "created_at")
-    search_fields = ("name",)
+    list_display = ("id", "name", "location", "incident_count", "created_at")
+    list_filter = ("location__country_text", "location__state_text")
+    search_fields = ("name", "location__state_text", "location__country_text")
     autocomplete_fields = ("location",)
     ordering = ("name",)
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Cave]:
+        return super().get_queryset(request).annotate(_incident_count=Count("incidents"))
+
+    @admin.display(description="Incidents", ordering="_incident_count")
+    def incident_count(self, obj: Cave) -> int:
+        return int(getattr(obj, "_incident_count", 0))
 
 
 @admin.register(Person)
@@ -182,7 +259,8 @@ class SourceExtractAdmin(ModelAdmin[SourceExtract]):
 class IncidentAdmin(ModelAdmin[Incident]):
     list_display = ("id", "title", "cave", "date", "origin", "view_count", "created_at")
     search_fields = ("title", "report", "analysis", "summary")
-    list_filter = ("tags", "origin")
+    list_filter = (DateYearFilter, "tags", "origin", "cave__location__country_text")
+    actions = ("mark_for_review",)
     autocomplete_fields = ("cave", "origin", "source_extract")
     filter_horizontal = ("tags",)
     readonly_fields = ("view_count", "search_vector", "created_at", "updated_at")
@@ -195,6 +273,13 @@ class IncidentAdmin(ModelAdmin[Incident]):
         ("Source", {"fields": ("origin", "source_extract")}),
         ("Metadata", {"fields": ("view_count", "search_vector", "created_at", "updated_at")}),
     )
+
+    @admin.action(description="Mark selected incidents for review")
+    def mark_for_review(self, request: HttpRequest, queryset: QuerySet[Incident]) -> None:
+        tag, _ = Tag.objects.get_or_create(name=REVIEW_TAG)
+        for incident in queryset:
+            incident.tags.add(tag)
+        self.message_user(request, f"Marked {queryset.count()} incidents for review")
 
 
 @admin.register(IncidentReference)

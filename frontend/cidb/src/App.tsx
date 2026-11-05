@@ -13,6 +13,7 @@ import { FeedbackListPage } from "@/pages/FeedbackListPage";
 import { IncidentPage } from "@/pages/IncidentPage";
 import { PrivacyPage } from "@/pages/PrivacyPage";
 import { SearchPage } from "@/pages/SearchPage";
+import { DataQualityPage } from "@/pages/DataQualityPage";
 import { StaffLoginPage } from "@/pages/StaffLoginPage";
 
 import * as Sentry from "@sentry/react";
@@ -50,6 +51,7 @@ function App() {
           <Route path="/incidents/:id" element={<IncidentPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/staff/login" element={<StaffLoginPage />} />
+          <Route path="/staff/data-quality" element={<DataQualityPage />} />
           <Route path="/staff/feedback" element={<FeedbackListPage />} />
           <Route path="/staff/feedback/:id" element={<FeedbackDetailPage />} />
         </Route>
