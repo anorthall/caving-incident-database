@@ -13,6 +13,7 @@ from cidb.src.incidents.api.schemas.feedback import (
     ResolveRequest,
     ResolveResponse,
 )
+from cidb.src.incidents.api.schemas.revision import PendingCountSchema
 from cidb.src.incidents.models.report import ContentReport, ReportReason, ReportStatus
 
 router = Router()
@@ -55,6 +56,13 @@ def list_feedback(
         page=page,
         page_size=page_size,
         total_pages=(total + page_size - 1) // page_size if total > 0 else 0,
+    )
+
+
+@router.get("/pending-count/", response=PendingCountSchema)
+def pending_count(request: HttpRequest) -> PendingCountSchema:
+    return PendingCountSchema(
+        count=ContentReport.objects.filter(status=ReportStatus.PENDING).count()
     )
 
 
