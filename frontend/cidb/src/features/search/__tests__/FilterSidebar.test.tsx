@@ -38,6 +38,8 @@ describe("FilterSidebar", () => {
     expect(groups.map((g) => g.querySelector("h3")?.textContent)).toEqual([
       "Tag",
       "State",
+      "Injury",
+      "Cave",
       "Country",
       "Year",
     ]);
