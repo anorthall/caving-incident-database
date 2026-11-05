@@ -24,3 +24,9 @@ class IncidentFacetsSchema(Schema):
 class StatRowSchema(Schema):
     label: str
     count: int
+
+
+class BrowseValueSchema(Schema):
+    value: str
+    count: int
+    id: int | None = None

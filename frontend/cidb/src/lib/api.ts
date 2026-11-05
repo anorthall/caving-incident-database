@@ -234,6 +234,15 @@ export async function searchIncidents(
   return response.json();
 }
 
+export type ExportFormat = "csv" | "json";
+
+export function exportUrl(filters: IncidentFilters, format: ExportFormat): string {
+  const searchParams = new URLSearchParams();
+  appendFilterParams(searchParams, filters);
+  searchParams.set("format", format);
+  return `${API_BASE_URL}/incidents/export?${searchParams.toString()}`;
+}
+
 export async function getFacets(filters: IncidentFilters): Promise<IncidentFacets> {
   const searchParams = new URLSearchParams();
   appendFilterParams(searchParams, filters);
@@ -513,6 +522,34 @@ export async function resolveFeedback(
 
   if (!response.ok) {
     throw new Error(`Failed to resolve feedback: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export type BrowseDimension = "state" | "country" | "tag" | "cave" | "decade";
+
+export interface BrowseValue {
+  value: string;
+  count: number;
+  id: number | null;
+}
+
+export async function getBrowseValues(dimension: BrowseDimension): Promise<BrowseValue[]> {
+  const response = await fetchWithRetry(`${API_BASE_URL}/browse/${dimension}`);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch browse values: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function getRelatedIncidents(id: number): Promise<IncidentListItem[]> {
+  const response = await fetchWithRetry(`${API_BASE_URL}/incidents/${id}/related`);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch related incidents: ${response.statusText}`);
   }
 
   return response.json();

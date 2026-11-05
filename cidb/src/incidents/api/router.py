@@ -4,6 +4,7 @@ from ninja import NinjaAPI
 from ninja.errors import HttpError
 
 from cidb.src.core.api.auth import router as auth_router
+from cidb.src.incidents.api.endpoints.browse import router as browse_router
 from cidb.src.incidents.api.endpoints.incidents import router as incidents_router
 from cidb.src.incidents.api.endpoints.reports import router as reports_router
 from cidb.src.incidents.api.endpoints.staff import router as staff_router
@@ -41,6 +42,7 @@ def handle_unexpected_error(request: HttpRequest, exc: Exception) -> HttpRespons
 
 
 api.add_router("/auth", auth_router, tags=["auth"])
+api.add_router("/browse", browse_router, tags=["browse"])
 api.add_router("/incidents", incidents_router, tags=["incidents"])
 api.add_router("/reports", reports_router, tags=["reports"])
 api.add_router("/staff", staff_router, tags=["staff"])
