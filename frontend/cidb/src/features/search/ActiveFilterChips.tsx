@@ -57,12 +57,18 @@ export function ActiveFilterChips() {
   return (
     <div className="flex flex-wrap items-center gap-2">
       {chips.map((chip) => (
-        <Badge key={chip.key} variant="secondary" className="gap-1 overflow-visible pr-1">
-          {chip.label}
+        <Badge
+          key={chip.key}
+          variant="secondary"
+          className="max-w-full min-w-0 gap-1 overflow-visible pr-1"
+        >
+          <span className="truncate" title={chip.label}>
+            {chip.label}
+          </span>
           <Button
             variant="ghost"
             size="icon"
-            className="-my-1 -mr-1 size-6 cursor-pointer rounded-full"
+            className="-my-1 -mr-1 size-6 shrink-0 cursor-pointer rounded-full"
             aria-label={`Remove filter ${chip.label}`}
             onClick={chip.onRemove}
           >
