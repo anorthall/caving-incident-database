@@ -1,0 +1,121 @@
+name: Image
+
+on:
+  workflow_call:
+    inputs:
+      push:
+        type: boolean
+        default: false
+      ref:
+        type: string
+        default: ""
+    outputs:
+      sha:
+        value: ${{ jobs.image.outputs.sha }}
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "Dockerfile"
+      - ".dockerignore"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "cidb/**"
+      - ".github/workflows/image.yaml"
+
+jobs:
+  # One job, so the image that passed the healthcheck is the one pushed.
+  image:
+    name: Image Builds
+    runs-on: ubuntu-24.04-arm
+    outputs:
+      sha: ${{ steps.resolve.outputs.sha }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+
+      - name: Resolve SHA
+        id: resolve
+        run: |
+          sha="$(git rev-parse HEAD)"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "short=${sha:0:7}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=latest
+            type=raw,value=sha-${{ steps.resolve.outputs.short }}
+
+      - name: Build for arm64
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/arm64
+          push: false
+          load: true
+          tags: |
+            cidb:ci
+            ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Start and wait for the healthcheck
+        run: |
+          set -euo pipefail
+          docker network create cidb-ci
+          docker run -d --name pg --network cidb-ci \
+            -e POSTGRES_DB=cidb -e POSTGRES_USER=cidb \
+            -e POSTGRES_HOST_AUTH_METHOD=trust postgres:18
+          for _ in $(seq 1 30); do
+            docker exec pg pg_isready -U cidb -d cidb >/dev/null 2>&1 && break
+            sleep 2
+          done
+          # DEBUG=false is deliberate: it is the value that used to crash
+          # gunicorn on import, so this pins that regression. The throwaway
+          # database uses trust auth and the key is generated here, so no
+          # credential is written down.
+          docker run -d --name web --network cidb-ci \
+            -e SECRET_KEY="$(head -c 32 /dev/urandom | base64)" \
+            -e DEBUG=false \
+            -e DJANGO_ALLOWED_HOSTS=localhost \
+            -e DATABASE_URL="postgres://cidb@pg:5432/cidb" \
+            cidb:ci
+          for _ in $(seq 1 30); do
+            if docker exec web python -c \
+              'import urllib.request;urllib.request.urlopen("http://localhost:8000/core/healthcheck/")' \
+              >/dev/null 2>&1; then
+              echo "healthcheck passed"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "healthcheck never passed; container logs:"
+          docker logs web
+          exit 1
+
+      - name: Log in to GHCR
+        if: inputs.push
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push
+        if: inputs.push
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          set -euo pipefail
+          while read -r tag; do
+            [ -n "$tag" ] && docker push "$tag"
+          done <<< "$TAGS"

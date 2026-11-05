@@ -1,6 +1,12 @@
 import { memo, useMemo } from "react";
-import type { ColumnDef, VisibilityState } from "@tanstack/react-table";
-import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import type { ColumnDef, ColumnVisibilityState } from "@tanstack/react-table";
+import {
+  columnSizingFeature,
+  columnVisibilityFeature,
+  flexRender,
+  tableFeatures,
+  useTable,
+} from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ArrowUpDown, Check } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -18,14 +24,16 @@ import { isIncidentViewed } from "@/lib/viewed-incidents";
 
 type TableSortField = SortField;
 
+const features = tableFeatures({ columnSizingFeature, columnVisibilityFeature });
+
 interface IncidentTableProps {
   incidents: IncidentListItem[];
   onRowClick: (id: number, index: number) => void;
   sortBy: SortField;
   sortOrder: SortOrder;
   onSortChange: (field: TableSortField) => void;
-  columnVisibility: VisibilityState;
-  onColumnVisibilityChange: (visibility: VisibilityState) => void;
+  columnVisibility: ColumnVisibilityState;
+  onColumnVisibilityChange: (visibility: ColumnVisibilityState) => void;
 }
 
 export const IncidentTable = memo(function IncidentTable({
@@ -48,7 +56,7 @@ export const IncidentTable = memo(function IncidentTable({
     );
   };
 
-  const columns: ColumnDef<IncidentListItem>[] = useMemo(
+  const columns: ColumnDef<typeof features, IncidentListItem>[] = useMemo(
     () => [
       {
         accessorKey: "date",
@@ -173,10 +181,10 @@ export const IncidentTable = memo(function IncidentTable({
     [SortIcon, onSortChange]
   );
 
-  const table = useReactTable({
+  const table = useTable({
+    features,
     data: incidents,
     columns,
-    getCoreRowModel: getCoreRowModel(),
     onColumnVisibilityChange: (updater) => {
       const newState = typeof updater === "function" ? updater(columnVisibility) : updater;
       onColumnVisibilityChange(newState);

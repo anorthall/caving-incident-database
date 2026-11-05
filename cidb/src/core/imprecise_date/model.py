@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 import re
 from dataclasses import dataclass, field
 from enum import Enum, StrEnum
@@ -43,7 +43,7 @@ _SEASON_MONTH_MAP = {
 @dataclass(frozen=True)
 class ImpreciseDate:
     _raw: str
-    _parsed: tuple[datetime.date, DatePrecision] | None = field(default=None, init=False)
+    _parsed: tuple[dt.date, DatePrecision] | None = field(default=None, init=False)
     _season: Season | None | Literal["UNSET"] = field(default="UNSET", init=False)
 
     @classmethod
@@ -67,7 +67,7 @@ class ImpreciseDate:
             return cls(f"{year_str}-{month_str}")
 
         try:
-            datetime.date(year, month, day)
+            dt.date(year, month, day)
         except ValueError as e:
             raise ValueError(f"Invalid date: {e}") from e
 
@@ -120,7 +120,7 @@ class ImpreciseDate:
             return NotImplemented
         return self.date > other.date
 
-    def _parse(self) -> tuple[datetime.date, DatePrecision]:
+    def _parse(self) -> tuple[dt.date, DatePrecision]:
         if self._parsed is not None:
             return self._parsed
 
@@ -138,7 +138,7 @@ class ImpreciseDate:
 
         # Year only
         if month_str is None and season_str is None:
-            return datetime.date(year, 1, 1), DatePrecision.YEAR
+            return dt.date(year, 1, 1), DatePrecision.YEAR
 
         # Season (normalize "fall" to "autumn")
         if season_str is not None:
@@ -147,7 +147,7 @@ class ImpreciseDate:
             season_normalized = "autumn" if season_str.lower() == "fall" else season_str.lower()
             season = Season(season_normalized)
             month = _SEASON_MONTH_MAP[season][0]
-            return datetime.date(year, month, 1), DatePrecision.SEASON
+            return dt.date(year, month, 1), DatePrecision.SEASON
 
         # Month (with optional day)
         month = int(month_str)
@@ -155,16 +155,16 @@ class ImpreciseDate:
             raise ValueError(f"Month must be between 1 and 12, got '{month}'")
 
         if day_str is None:
-            return datetime.date(year, month, 1), DatePrecision.MONTH
+            return dt.date(year, month, 1), DatePrecision.MONTH
 
         day = int(day_str)
         if not (1 <= day <= 31):
             raise ValueError(f"Day must be between 1 and 31, got '{day}'")
 
-        return datetime.date(year, month, day), DatePrecision.DAY
+        return dt.date(year, month, day), DatePrecision.DAY
 
     @property
-    def date(self) -> datetime.date:
+    def date(self) -> dt.date:
         return self._parse()[0]
 
     @property
